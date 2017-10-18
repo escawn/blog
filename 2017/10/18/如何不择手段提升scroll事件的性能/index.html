@@ -1,0 +1,1335 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|sourcesanspro:300,300italic,400,400italic,700,700italic|consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Escawn" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="&amp;lt;!--假装此处有一个段子作为引子--&amp;gt;
+TL;DR
+chrome devtool 是诊断页面滚动性能的有效工具
+
+提升滚动时性能，就是要达到fps高且稳。
+
+具体可以从以下方面着手
+
+使用web worker分离无页面渲染无关的逻辑计算
+
+触发监听事件时使用函数节流与函数去抖
+
+使用requestAnimationFrame与requestIdleCallback代替定时器
+
+避免强">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何不择手段提升scroll事件的性能">
+<meta property="og:url" content="https://escawn.github.io/2017/10/18/如何不择手段提升scroll事件的性能/index.html">
+<meta property="og:site_name" content="Escawn">
+<meta property="og:description" content="&amp;lt;!--假装此处有一个段子作为引子--&amp;gt;
+TL;DR
+chrome devtool 是诊断页面滚动性能的有效工具
+
+提升滚动时性能，就是要达到fps高且稳。
+
+具体可以从以下方面着手
+
+使用web worker分离无页面渲染无关的逻辑计算
+
+触发监听事件时使用函数节流与函数去抖
+
+使用requestAnimationFrame与requestIdleCallback代替定时器
+
+避免强">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance83634a4e9258d1093fb500e0d558ccbf6d814dc1.png">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance0.png">
+<meta property="og:image" content="https://img.alicdn.com/tps/TB19v8YLpXXXXXeXpXXXXXXXXXX-949-446.png">
+<meta property="og:image" content="https://img.alicdn.com/tps/TB1Tr4yLpXXXXbFaXXXXXXXXXXX-949-446.png">
+<meta property="og:image" content="https://developers.google.com/web/fundamentals/performance/rendering/images/intro/frame-full.jpg?hl=zh-cn">
+<meta property="og:image" content="https://developers.google.com/web/fundamentals/performance/rendering/images/intro/frame-full.jpg?hl=zh-cn">
+<meta property="og:image" content="https://developers.google.com/web/fundamentals/performance/rendering/images/intro/frame-no-layout.jpg?hl=zh-cn">
+<meta property="og:image" content="https://developers.google.com/web/fundamentals/performance/rendering/images/intro/frame-no-layout-paint.jpg?hl=zh-cn">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-perforamceBrowser%20Render%20%281%29.png">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performancea00058647ba4f364bda782aabe862c89.png">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance2017-10-09_15-56-48.gif">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-09%20%E4%B8%8B%E5%8D%883.31.42.png">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1158202-e144d3fcbe900a0c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance2017-10-10_13-16-28.gif">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-10%20%E4%B8%8A%E5%8D%8811.27.27.png">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-10%20%E4%B8%8A%E5%8D%8811.29.50.png">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-10%20%E4%B8%8A%E5%8D%8811.55.52.png">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-10%20%E4%B8%8A%E5%8D%8811.43.22.png">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-10%20%E4%B8%8A%E5%8D%8811.58.33.png">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-10%20%E4%B8%8A%E5%8D%8811.59.16.png">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/flush111.png">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-11%20%E4%B8%8B%E5%8D%883.59.18.png">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance2017-10-11_19-36-59.gif">
+<meta property="og:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-11%20%E4%B8%8B%E5%8D%887.40.28.png">
+<meta property="og:updated_time" content="2017-10-18T15:10:35.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="如何不择手段提升scroll事件的性能">
+<meta name="twitter:description" content="&amp;lt;!--假装此处有一个段子作为引子--&amp;gt;
+TL;DR
+chrome devtool 是诊断页面滚动性能的有效工具
+
+提升滚动时性能，就是要达到fps高且稳。
+
+具体可以从以下方面着手
+
+使用web worker分离无页面渲染无关的逻辑计算
+
+触发监听事件时使用函数节流与函数去抖
+
+使用requestAnimationFrame与requestIdleCallback代替定时器
+
+避免强">
+<meta name="twitter:image" content="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance83634a4e9258d1093fb500e0d558ccbf6d814dc1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://escawn.github.io/2017/10/18/如何不择手段提升scroll事件的性能/"/>
+
+
+
+
+
+  <title> 如何不择手段提升scroll事件的性能 | Escawn </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?b33ff7e3b9f0d06afa976748bb45394e";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Escawn</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://escawn.github.io/2017/10/18/如何不择手段提升scroll事件的性能/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="escawn">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Escawn">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                如何不择手段提升scroll事件的性能
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-10-18T23:09:07+08:00">
+                2017-10-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+          
+            <span class="post-letters-count">
+              &nbsp; | &nbsp;
+              <span>7,326 字</span>
+              &nbsp; | &nbsp;
+              <span>29 min</span>
+            </span>
+          
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/10/18/如何不择手段提升scroll事件的性能/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/10/18/如何不择手段提升scroll事件的性能/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/10/18/如何不择手段提升scroll事件的性能/" class="leancloud_visitors" data-flag-title="如何不择手段提升scroll事件的性能">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><code>&lt;!--假装此处有一个段子作为引子--&gt;</code></p>
+<h2 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h2><ol>
+<li><p>chrome devtool 是诊断页面滚动性能的有效工具</p>
+</li>
+<li><p>提升滚动时性能，就是要达到fps高且稳。</p>
+</li>
+<li><p>具体可以从以下方面着手</p>
+<ul>
+<li><p>使用web worker分离无页面渲染无关的逻辑计算</p>
+</li>
+<li><p>触发监听事件时使用函数节流与函数去抖</p>
+</li>
+<li><p>使用requestAnimationFrame与requestIdleCallback代替定时器</p>
+</li>
+<li><p>避免强制重排</p>
+</li>
+<li><p>提升合成层</p>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h2><!--此处应有scroll-performance使用场景-->
+<p>滚动行为无时无刻不出现在我们浏览网页的行为中，在许多场景中，我们有有意识地、主动地去使用滚动操作，比如：</p>
+<ul>
+<li><p>懒加载</p>
+</li>
+<li><p>loadmore</p>
+</li>
+<li><p>affix</p>
+</li>
+<li><p>回到顶部</p>
+</li>
+</ul>
+<p>以上场景伴随着滚动事件的监听操作，一不留神可能就让页面的滚动不再“如丝般顺滑”。</p>
+<p><em>不择手段打造一个卡顿的scroll场景：</em><br><!--此处应p图上帝造人--></p>
+<p><img src="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance83634a4e9258d1093fb500e0d558ccbf6d814dc1.png" alt=""><img src="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance0.png" alt=""></p>
+<!--此处应有一个过渡-->
+<p>作为一名优秀的前端工程师（未来的），怎么能容许出现这种情况！不就性能优化吗，撩起袖子就是干！</p>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><!--此处应有帧介绍-->
+<p>在一个流畅的页面变化效果中（动画或滚动），<strong>渲染帧</strong>，指的是浏览器从js执行到paint的一次绘制过程，帧与帧之间快速地切换，由于人眼的残像错觉，就形成了动画的效果。那么这个“快速”，要达到多少才合适呢？</p>
+<p>我们都知道，下层建筑决定了上层建筑。受限于目前大多数屏幕的刷新频率——<strong>60次/s</strong>，浏览器的渲染更新的页面的<strong>标准帧率</strong>也为<strong>60次/s</strong> – <strong>60FPS</strong>(frames/per second)。</p>
+<ul>
+<li>高于这个数字，在一次屏幕刷新的时间间隔<strong>16.7ms</strong>(1/60)内，就算浏览器渲染了多次页面，屏幕也只刷新一次，这就造成了性能的浪费。</li>
+<li>低于这个数字，帧率下降，人眼就可能捕捉到两帧之间变化的滞涩与突兀，表现在屏幕上，就是页面的抖动，大家通常称之为<strong>卡顿</strong></li>
+</ul>
+<!--此处应有小火车的比喻示意图-->
+<!--丢帧: 没赶上火车-->
+<p>来个比喻。快递每天整理包裹，并一天一送。如果某天包裹太多，整理花费了太多时间，来不及当日（帧）送到收件人处，那就延期了（丢帧）。</p>
+<!--此处应有浏览器渲染关键路径介绍-->
+<p>那么在这16.7ms之内，浏览器都干了什么呢？</p>
+<p>浏览器内心OS：不要老抱怨我延期（丢帧），我也很忙的好伐？</p>
+<h3 id="帧维度解释帧渲染过程"><a href="#帧维度解释帧渲染过程" class="headerlink" title="帧维度解释帧渲染过程"></a>帧维度解释帧渲染过程</h3><p>浏览器渲染页面的<strong>Renderer</strong>进程里，涉及到了两个线程，二者之间通过名为Commit的消息保持同步：</p>
+<ul>
+<li><p>Main线程：浏览器渲染的主要执行步骤，包含从JS执行到Composite合成的一系列操作（下文会介绍）</p>
+</li>
+<li><p>Compositor线程：接收用户的一些交互操作(比如滚动) =&gt; 唤起Main线程进行操作 =&gt; 接收Main线程的操作结果 =&gt; commit给真正把页面draw到屏幕上的GPU进程</p>
+</li>
+</ul>
+<p><strong>标准渲染帧：</strong></p>
+<p><img src="https://img.alicdn.com/tps/TB19v8YLpXXXXXeXpXXXXXXXXXX-949-446.png" alt=""><br>在一个标准帧渲染时间16.7ms之内，浏览器需要完成Main线程的操作，并commit给Compositor进程</p>
+<p><strong>丢帧：</strong><br><img src="https://img.alicdn.com/tps/TB1Tr4yLpXXXXbFaXXXXXXXXXXX-949-446.png" alt=""><br>主线程里操作太多，耗时长，commit的时间被推迟，浏览器来不及将页面draw到屏幕，这就丢失了一帧</p>
+<p>那么Main线程里都有些什么操作会导致延时呢？</p>
+<!--此处应有五个流程的截图 注明摘抄自官网-->
+<h3 id="进一步解释浏览器主要执行步骤"><a href="#进一步解释浏览器主要执行步骤" class="headerlink" title="进一步解释浏览器主要执行步骤"></a>进一步解释浏览器主要执行步骤</h3><p><img src="https://developers.google.com/web/fundamentals/performance/rendering/images/intro/frame-full.jpg?hl=zh-cn" alt=""><br><!--此处应有五个流程的具体分析--></p>
+<blockquote>
+<ul>
+<li><p>JavaScript：包含与视觉变化效果相关的<strong>js操作</strong>。包括并不限于：dom更新、元素样式动态改变、jQuery的animate函数等。</p>
+</li>
+<li><p>Style：样式计算。这个过程，浏览器根据css选择器计算哪些元素应该应用哪些规则，然后将样式规则落实到每个元素上去，确定每个元素具体的样式。</p>
+</li>
+<li><p>Layout：布局。在知道对一个元素应用哪些规则之后，浏览器即可开始计算它要占据的空间大小及其在屏幕的位置。</p>
+</li>
+<li><p>Painting：绘制。绘制是填充像素的过程。它涉及绘出文本、颜色、图像、边框和阴影，基本上包括元素的每个可视部分。绘制一般是在多个表面（通常称为层）上完成的。(paint和draw的区别：paint是把内容填充到页面，而draw是把页面反映到屏幕上)</p>
+</li>
+<li><p>Composite：合成。由于页面的各部分可能被绘制到多层，由此它们需要按正确顺序绘制到屏幕上，以便正确渲染页面。对于与另一元素重叠的元素来说，这点特别重要，因为一个错误可能使一个元素错误地出现在另一个元素的上层。</p>
+</li>
+</ul>
+</blockquote>
+<p>理论上，每次标准的渲染，浏览器Main线程需要执行JavaScript =&gt; Style =&gt; Layout =&gt; Paint =&gt; Composite五个步骤，但是实际上，要分场景。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">操作</th>
+<th style="text-align:center">浏览器执行操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">dom改变/resize等改变窗口大小的事件</td>
+<td style="text-align:center"><img src="https://developers.google.com/web/fundamentals/performance/rendering/images/intro/frame-full.jpg?hl=zh-cn" alt=""></td>
+</tr>
+<tr>
+<td style="text-align:center">样式变动</td>
+<td style="text-align:center"><img src="https://developers.google.com/web/fundamentals/performance/rendering/images/intro/frame-no-layout.jpg?hl=zh-cn" alt=""></td>
+</tr>
+<tr>
+<td style="text-align:center">更改一个既不要布局也不要绘制的属性</td>
+<td style="text-align:center"><img src="https://developers.google.com/web/fundamentals/performance/rendering/images/intro/frame-no-layout-paint.jpg?hl=zh-cn" alt=""></td>
+</tr>
+</tbody>
+</table>
+<p><strong>指路<a href="https://developers.google.com/web/fundamentals/performance/rendering/?hl=zh-cn" target="_blank" rel="external">官网</a></strong></p>
+<h3 id="再进一步解释浏览器渲染流程"><a href="#再进一步解释浏览器渲染流程" class="headerlink" title="再进一步解释浏览器渲染流程"></a>再进一步解释浏览器渲染流程</h3><p><img src="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-perforamceBrowser%20Render%20%281%29.png" alt=""></p>
+<p>流程：</p>
+<ol>
+<li><p>Compositor线程接收一个vsync信号，表示这一帧开始</p>
+</li>
+<li><p>Compositor线程接收用户的交互输入（比如touchmove、scroll、click等）。然后commit给Main线程，这里有两点规则需要注意：</p>
+<ul>
+<li><p>并不是所有event都会commit给Main线程，部分操作比如单纯的滚动事件，打字等输入，不需要执行JS，也没有需要重绘的场景，Compositor线程就自己处理了，无需请求Main线程</p>
+</li>
+<li><p>同样的事件类型，不论一帧内被Compositor线程接收多少次，实际上commit给Main线程的，只会是一次，意味着也只会被执行一次。（HTML5标准里scroll事件是每帧触发一次）</p>
+</li>
+</ul>
+</li>
+<li><p>Main线程执行从JavaScript到Composite的过程，也有两点需要注意：</p>
+<ul>
+<li><p>注意红线，意思是可能会在JS里强制重排，当访问scrollWidth系列、clientHeight系列、offsetTop系列、ComputedStyle等属性时，会触发这个效果，导致Style和Layout前移到JS代码执行过程中。</p>
+</li>
+<li><p>实际上图中省略了Renderer进程中的其他线程，比如当Main线程走到js执行这一步时，会调起单独的js线程来执行。另外还有如HTML解释线程等。</p>
+</li>
+</ul>
+</li>
+<li><p>当Main线程完成最后合成之后，与Compositor线程使用commit进行通信，Compositor调起Compositor Tile Work(s)来辅助处理页面。Rasterize意为光栅化，想深入了解什么是光栅的小伙伴可以戳这里了解：<a href="https://chuckliu.me/#!/posts/58ea6af15dc1822fa9a57274" target="_blank" rel="external">浏览器渲染详细过程：重绘、重排和composite只是冰山一角</a></p>
+</li>
+<li><p>页面paint结束之后，这一帧就结束了。GPU进程里的GPU线程负责把Renderer进程操作好的页面，交由GPU，调用GPU内方法，由GPU把页面draw到屏幕上。</p>
+</li>
+<li><p>屏幕刷新，我们就在浏览器（屏幕）上看到了新页面。</p>
+</li>
+</ol>
+<p>接下来，简要介绍一下，如何使用chrome devtool分析页面性能。</p>
+<p>示意图（<em>chrome version: 61</em>）：<br><img src="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performancea00058647ba4f364bda782aabe862c89.png" alt=""></p>
+<ul>
+<li><p>帧率概览。看顶端绿色长条，越高代表帧率越高，高低起伏多代表帧率变化不稳定，越坑坑洼洼代表容易产生视觉上的卡顿。</p>
+</li>
+<li><p>分析具体某一帧。如果发现，有哪一帧帧率特别低，可以在中间那一栏找到耗时长的那一帧，点击进行具体的活动分析。</p>
+</li>
+<li><p>分析个活动耗时。自由选择某一段或某一帧观察这段时间内各项活动的耗时来诊断页面。(注意颜色)</p>
+</li>
+</ul>
+<p>应该注意，我们可以看见，很少有帧的时间准确卡在了16.7s，实际上每帧达到60fps的帧率，只是一个理想化的数字，浏览器执行过程中可能受到各种情况的干扰。而我们人眼也没有那么灵敏，只要达到20帧以上，页面看起来就比较流畅了。尤其是结构复杂，数据较多的页面，盲目追求60fps只是钻牛角尖。所以，以我浅见，稳定的fps更能影响scroll效果。</p>
+<p>关于<strong>更加具体地</strong>如何使用chome devtool分析页面性能，戳：<a href="https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/reference" target="_blank" rel="external">Performance Analysis Reference</a></p>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><p>我们的目标很明确，就是拒绝卡顿！具体说来就是尽量赶在16.7ms之内让浏览器完成五项工作，压缩每个步骤时间。</p>
+<h3 id="简化js内操作"><a href="#简化js内操作" class="headerlink" title="简化js内操作"></a>简化js内操作</h3><h4 id="使用web-worker"><a href="#使用web-worker" class="headerlink" title="使用web worker"></a>使用web worker</h4><p>当我们了解了浏览器渲染时执行的过程，并且清楚浏览器内核处理方式（处理js的线程与GUI页面渲染线程互斥）之后，我们很容易假想出这样一种状况：如果js大量的计算和逻辑操作霸占着浏览器，使页面渲染得不到处理，怎么办？</p>
+<p>这种情况，很容易造成scroll的卡顿，甚至浏览器假死，就像<code>alert()</code>出现一样。</p>
+<p>想象一下吧，本来大家好好地按照生理周期一个接一个上厕所，突然小j便秘了！你说排在他后面的小g急不急，可急死了！</p>
+<p>web worker是什么？</p>
+<blockquote>
+<p>Web Worker为Web内容在后台线程中运行脚本提供了一种简单的方法。线程可以执行任务而不干扰用户界面。</p>
+</blockquote>
+<p>这就好像，给容易“便秘”的小j，单独搭了个简易厕所。</p>
+<p>之所以说这是一个简易厕所，因为它有一些限制</p>
+<ul>
+<li><p>无法访问DOM节点</p>
+</li>
+<li><p>无法访问全局变量或是全局函数</p>
+</li>
+<li><p>无法调用alert()或者confirm之类的函数</p>
+</li>
+<li><p>无法访问window、document之类的浏览器全局变量</p>
+</li>
+</ul>
+<blockquote>
+<p>主线程和 worker 线程之间通过这样的方式互相传输信息：两端都使用 postMessage() 方法来发送信息, 并且通过 onmessage 这个 event handler来接收信息。 （传递的信息包含在 Message 这个事件的数据属性内) 。数据的交互是通过传递副本，而不是直接共享数据。</p>
+</blockquote>
+<p><strong>使用案例 - 判断素数</strong></p>
+<p>案例来自<a href="https://dzone.com/articles/web-workers-responsive" target="_blank" rel="external">Web Workers, for a responsive JavaScript application</a></p>
+<blockquote>
+<p>素数，定义为在大于1的自然数中，除了1和它本身以外不再有其他因数。判断算法为，以2到它的平方根为界取整数做循环判断，用它和这个数字求余数，只要中间任意一次计算得到余数为零，则能够确认这个数字不是质数。</p>
+</blockquote>
+<p><strong>code</strong></p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div></pre></td><td class="code"><pre><div class="line">// in html</div><div class="line">&lt;script type="text/javascript"&gt;</div><div class="line">// we will use this function in-line in this page</div><div class="line">function isPrime(number)</div><div class="line">&#123;</div><div class="line">    if (number === 0 || number === 1) &#123;</div><div class="line">        return true;</div><div class="line">    &#125;</div><div class="line">    var i;</div><div class="line">    for (i = 2; i &lt;= Math.sqrt(number); i++) &#123;</div><div class="line">        if (number % i === 0) &#123;</div><div class="line">            return false;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    return true;</div><div class="line">&#125;</div><div class="line"></div><div class="line">// a large number, so that the computation time is sensible</div><div class="line">var number = "1000001111111111";</div><div class="line">// including the worker's code</div><div class="line">var w = new Worker('webworkers.js');</div><div class="line">// the callback for the worker to call</div><div class="line">w.onmessage = function(e) &#123;</div><div class="line">    if (e.data) &#123;</div><div class="line">        alert(number + ' is prime. Now I\'ll try calculating without a web worker.');</div><div class="line">        var result = isPrime(number);</div><div class="line">        if (result) &#123;</div><div class="line">            alert('I am sure, it is prime. ');</div><div class="line">        &#125;</div><div class="line">    &#125; else &#123;</div><div class="line">        alert(number + ' is not prime.');</div><div class="line">    &#125;</div><div class="line">&#125;;</div><div class="line">// sending a message to the worker in order to start it</div><div class="line">w.postMessage(number);</div><div class="line"></div><div class="line">&lt;/script&gt;</div><div class="line">&lt;p style="height: 200px; width: 400px; overflow: scroll;"&gt;</div><div class="line">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce blandit tristique risus, a rhoncus nisl posuere sed. Praesent vel risus turpis, et fermentum lectus. Ut lacinia nunc dui. Sed a velit orci. Maecenas quis diam neque. Vestibulum id arcu purus, quis cursus arcu. Etiam luctus, risus eu scelerisque scelerisque, sapien felis tincidunt ante, vel pellentesque eros nunc at magna. Nam tincidunt mattis velit ut condimentum. Vivamus ipsum ipsum, venenatis vitae placerat eu, convallis quis metus. Quisque tortor sapien, dapibus non vehicula quis, dapibus at purus. Nunc posuere, ligula sed facilisis sagittis, justo massa placerat nulla, nec pellentesque libero erat ut ligula. Aenean molestie, urna quis molestie auctor, lorem purus hendrerit nisi, vitae tincidunt metus massa et dolor. Sed leo velit, iaculis tristique elementum tincidunt, ornare et tellus. Quisque lacinia felis at est faucibus in facilisis dui consectetur. Phasellus sed ante id tortor pretium ornare. Aliquam ante justo, aliquam ut mollis semper, mattis sit amet urna. Pellentesque placerat, diam nec consectetur blandit, libero metus placerat massa, quis mattis metus metus nec lorem.</div><div class="line">&lt;/p&gt;</div><div class="line"></div><div class="line"></div><div class="line">// in webworkers.js</div><div class="line">function isPrime(number)</div><div class="line">&#123;</div><div class="line">    if (number === 0 || number === 1) &#123;</div><div class="line">        return true;</div><div class="line">    &#125;</div><div class="line">    var i;</div><div class="line">    for (i = 2; i &lt;= Math.sqrt(number); i++) &#123;</div><div class="line">        if (number % i === 0) &#123;</div><div class="line">            return false;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    return true;</div><div class="line">&#125;</div><div class="line"></div><div class="line">// this is the point of entry for the workers</div><div class="line">onmessage = function(e) &#123;</div><div class="line">    // you can support different messages by checking the e.data value</div><div class="line">    number = e.data;</div><div class="line">    result = isPrime(number);</div><div class="line">    // calling back the main thread</div><div class="line">    postMessage(result);</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>代码说明：</p>
+<ul>
+<li><p>使用web worker对一个较大数字（1000001111111111）进行素数判断</p>
+</li>
+<li><p>得到结果之后<code>alert(number + &#39; is prime. Now I\&#39;ll try calculating without a web worker.&#39;)</code></p>
+</li>
+<li><p>在不使用web worker的情况下，对相同数字进行素数判断，完成后<code>alert(&#39;I am sure, it is prime. &#39;)</code></p>
+</li>
+<li><p>从页面</p><p>标签里的内容的滚动情况判断两次计算对浏览器/页面造成的影响</p>
+</li>
+</ul>
+<p>现场还原：<br><img src="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance2017-10-09_15-56-48.gif" alt=""><br><a href="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance2017-10-09_15-56-48.gif" target="_blank" rel="external">不动戳我</a></p>
+<p><strong>案例总结</strong>：<br>从两次alert之后的段落滚动情况（第二次根本动不了），足以看出大量繁杂的js计算对页面的影响。恰当地使用web worker，<strong>能有效缓解页面scroll阻塞的情况</strong>。</p>
+<p>而且它的支持率也良好~<br><img src="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-09%20%E4%B8%8B%E5%8D%883.31.42.png" alt=""></p>
+<p>在应用方面，Angular已经做了一些尝试。</p>
+<p><a href="https://zhuanlan.zhihu.com/p/28365967" target="_blank" rel="external">解密Angular WebWorker Renderer (一)</a>：想办法打破web worker本身不能操作dom元素等限制，利用web worker执行渲染操作</p>
+<p><strong><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Web_Workers_API/Using_web_workers" target="_blank" rel="external">Learn more about web worker</a></strong></p>
+<h4 id="函数节流与函数去抖"><a href="#函数节流与函数去抖" class="headerlink" title="函数节流与函数去抖"></a>函数节流与函数去抖</h4><!--此处应有函数节流与函数去抖介绍-->
+<p>针对scroll事件中的回调，思路之一是对事件进行“稀释”，减少事件回调的执行次数。</p>
+<p>这就涉及到两个概念：函数节流和函数去抖</p>
+<ul>
+<li><p>函数节流（throttle）：让函数在指定的时间段内<strong>周期性地间断</strong>执行</p>
+</li>
+<li><p>函数去抖（debounce）：让函数只有在过完一段时间后并且<strong>该段时间内不被调用</strong>才会被执行</p>
+</li>
+</ul>
+<p>有人这样比喻：</p>
+<blockquote>
+<p>就像一窝蜂的人去排队看演出，队伍很乱，看门的老大爷每隔1秒，让进一个人，这个叫throttle，如果来了这一窝蜂的人，老大爷一次演出只让进一个人，下次演出才让下一个人进，这个就叫debounce</p>
+</blockquote>
+<p>OK, text is long, show you code.</p>
+<p>以下code来自<a href="https://github.com/jashkenas/underscore/blob/master/underscore.js" target="_blank" rel="external">underscore.js</a>(类似jQuery的库，封装了一些方法)</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Returns a function, that, when invoked, will only be triggered at most once</span></div><div class="line">  <span class="comment">// during a given window of time. Normally, the throttled function will run</span></div><div class="line">  <span class="comment">// as much as it can, without ever going more than once per `wait` duration;</span></div><div class="line">  <span class="comment">// but if you'd like to disable the execution on the leading edge, pass</span></div><div class="line">  <span class="comment">// `&#123;leading: false&#125;`. To disable execution on the trailing edge, ditto.</span></div><div class="line">  _.throttle = <span class="function"><span class="keyword">function</span>(<span class="params">func, wait, options</span>) </span>&#123;</div><div class="line">    <span class="keyword">var</span> timeout, context, args, result;</div><div class="line">    <span class="comment">// 标记时间戳</span></div><div class="line">    <span class="keyword">var</span> previous = <span class="number">0</span>;</div><div class="line">    <span class="comment">// options可选属性 leading: true/false 表示第一次事件马上触发回调/等待wait时间后触发</span></div><div class="line">    <span class="comment">// options可选属性 trailing: true/false 表示最后一次回调触发/最后一次回调不触发</span></div><div class="line">    <span class="keyword">if</span> (!options) options = &#123;&#125;;</div><div class="line"></div><div class="line">    <span class="keyword">var</span> later = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">      previous = options.leading === <span class="literal">false</span> ? <span class="number">0</span> : _.now();</div><div class="line">      timeout = <span class="literal">null</span>;</div><div class="line">      result = func.apply(context, args);</div><div class="line">      <span class="keyword">if</span> (!timeout) context = args = <span class="literal">null</span>;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">    <span class="keyword">var</span> throttled = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">      <span class="comment">// 记录当前时间戳</span></div><div class="line">      <span class="keyword">var</span> now = _.now();</div><div class="line">      <span class="comment">// 如果是第一次触发且选项设置不立即执行回调</span></div><div class="line">      <span class="keyword">if</span> (!previous &amp;&amp; options.leading === <span class="literal">false</span>)</div><div class="line">      <span class="comment">// 将记录的上次执行的时间戳置为当前</span></div><div class="line">      previous = now;</div><div class="line">      <span class="comment">// 距离下次触发回调还需等待的时间</span></div><div class="line">      <span class="keyword">var</span> remaining = wait - (now - previous);</div><div class="line">      context = <span class="keyword">this</span>;</div><div class="line">      args = <span class="built_in">arguments</span>;</div><div class="line"></div><div class="line">      <span class="comment">// 等待时间 &lt;= 0或者不科学地 &gt; wait（异常情况）</span></div><div class="line">      <span class="keyword">if</span> (remaining &lt;= <span class="number">0</span> || remaining &gt; wait) &#123;</div><div class="line">        <span class="keyword">if</span> (timeout) &#123;</div><div class="line">        	<span class="comment">// 清除定时器</span></div><div class="line">          clearTimeout(timeout);</div><div class="line">          <span class="comment">// 解除引用</span></div><div class="line">          timeout = <span class="literal">null</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="comment">// 将记录的上次执行的时间戳置为当前</span></div><div class="line">        previous = now;</div><div class="line"></div><div class="line">        <span class="comment">// 触发回调</span></div><div class="line">        result = func.apply(context, args);</div><div class="line">        <span class="keyword">if</span> (!timeout) context = args = <span class="literal">null</span>;</div><div class="line">      &#125;</div><div class="line">      <span class="comment">// 在定时器不存在且选项设置最后一次触发需要执行回调的情况下</span></div><div class="line">      <span class="comment">// 设置定时器，间隔remaining时间后执行later</span></div><div class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (!timeout &amp;&amp; options.trailing !== <span class="literal">false</span>) 	  &#123;</div><div class="line">        timeout = setTimeout(later, remaining);</div><div class="line">      &#125;</div><div class="line">     <span class="keyword">return</span> result;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">    throttled.cancel = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">      clearTimeout(timeout);</div><div class="line">      previous = <span class="number">0</span>;</div><div class="line">      timeout = context = args = <span class="literal">null</span>;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> throttled;</div><div class="line">  &#125;;</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line">// Returns a function, that, as long as it continues to be invoked, will not</div><div class="line">// be triggered. The function will be called after it stops being called for</div><div class="line">// N milliseconds. If `immediate` is passed, trigger the function on the</div><div class="line">// leading edge, instead of the trailing.</div><div class="line">_.debounce = function(func, wait, immediate) &#123;</div><div class="line">  var timeout, result;</div><div class="line"></div><div class="line">// 定时器设置的回调，清除定时器，执行回调函数func</div><div class="line">  var later = function(context, args) &#123;</div><div class="line">    timeout = null;</div><div class="line">    if (args) result = func.apply(context, args);</div><div class="line">  &#125;;</div><div class="line"></div><div class="line">// restArgs函数将传入的func的参数改造成Rest Parameters —— 一个参数数组</div><div class="line">  var debounced = restArgs(function(args) &#123;</div><div class="line">    if (timeout) clearTimeout(timeout);</div><div class="line">    if (immediate) &#123;</div><div class="line">      // 立即触发的条件：immediate为true且timeout为空</div><div class="line">      var callNow = !timeout;</div><div class="line">      timeout = setTimeout(later, wait);</div><div class="line">      if (callNow) result = func.apply(this, args);</div><div class="line">    &#125; else &#123;</div><div class="line">      // _.delay方法实际上是setTimeout()包裹了一层参数处理的逻辑</div><div class="line">      timeout = _.delay(later, wait, this, args);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    return result;</div><div class="line">  &#125;);</div><div class="line"></div><div class="line">  debounced.cancel = function() &#123;</div><div class="line">    clearTimeout(timeout);</div><div class="line">    timeout = null;</div><div class="line">  &#125;;</div><div class="line"></div><div class="line">  return debounced;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>对比以上代码，我们可以发现，两种方法应用的场景时有差别的</p>
+<ul>
+<li><p>函数节流：适用于多次提交（commit）的场景，如点击按钮提交发送请求的情况</p>
+</li>
+<li><p>函数去抖：适用于scroll/resize等场景</p>
+</li>
+</ul>
+<p>相对于多次触发只执行一次的debounce，间隔地执行回调的throttle更能满足“稀释”scroll事件的需求。</p>
+<p>至于wait的设定值，到底多久执行一次比较合适？很大部分还是取决于具体的场景&amp;代码复杂度，但是这里有一个例子可以参考：<a href="https://johnresig.com/blog/learning-from-twitter/" target="_blank" rel="external">Learning from Twitter</a></p>
+<p>2011年Twitter出现过滚动性能差到严重影响用户体验的案例，原因是</p>
+<blockquote>
+<ul>
+<li><p>It’s a very, very, bad idea to attach handlers to the window scroll event.</p>
+</li>
+<li><p>Always cache the selector queries that you’re re-using.</p>
+</li>
+</ul>
+</blockquote>
+<p>最后采用了函数节流的办法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">var outerPane = $details.find(&quot;.details-pane-outer&quot;),</div><div class="line">    didScroll = false;</div><div class="line"></div><div class="line">$(window).scroll(function() &#123;</div><div class="line">    didScroll = true;</div><div class="line">&#125;);</div><div class="line"></div><div class="line">setInterval(function() &#123;</div><div class="line">    if ( didScroll ) &#123;</div><div class="line">        didScroll = false;</div><div class="line">        // Check your page position and then</div><div class="line">        // Load in more results</div><div class="line">    &#125;</div><div class="line">&#125;, 250);</div></pre></td></tr></table></figure>
+<p>示例中给出的数字250，可以给大家参考一下~</p>
+<h3 id="去定时器"><a href="#去定时器" class="headerlink" title="去定时器"></a>去定时器</h3><p>为什么定时器会引起掉帧？<br><img src="http://upload-images.jianshu.io/upload_images/1158202-e144d3fcbe900a0c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p>如你所见，定时器导致掉帧的原因，就在于无法准确控制回调执行的时机。</p>
+<p>即使给定时器设置延时时间wait恰好为16.7ms，也不行。</p>
+<p>js的单线程限制了回调会在16.7ms之后加入任务队列，却不能保证一定在16.7ms之后触发。如果当下js正在进行耗时计算，回调就只能等着。所以实际上回调执行的时机，是定时器设置后 &gt;= 16.7ms后。</p>
+<p>那么去定时器是否意味着否定了之前说的函数去抖和函数节流操作？</p>
+<p>NONONO，这两种提升scroll性能的操作应用于不同的场景：</p>
+<ul>
+<li><p>scroll过程中伴随着不直接改变画面效果的计算操作，如懒加载、loadmore等，在这样的scroll场景里，我们要不断进行判断操作，大量的计算操作就可能阻塞scroll，所以要对操作进行“稀释”。</p>
+</li>
+<li><p>scroll过程中伴随着直接改变画面效果的操作，如动画、affix引起的scroll滚动等。</p>
+</li>
+</ul>
+<p><strong>案例：</strong><br>在这个世界上，有一种经典的导航栏形式，那就是，affix。</p>
+<blockquote>
+<p>这种导航栏在你scroll时会粘在你的窗口的固定位置（一般是top），并且在你点击导航栏时自动滚动到页面对应的target内容。</p>
+</blockquote>
+<p><img src="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance2017-10-10_13-16-28.gif" alt=""></p>
+<p><a href="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance2017-10-10_13-16-28.gif" target="_blank" rel="external">不动戳我</a></p>
+<p>这是我自己做的一个小demo，利用了setInterval，每16.7ms设置scrollTop + 5px，达到“平滑”滚动的效果。</p>
+<p><img src="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-10%20%E4%B8%8A%E5%8D%8811.27.27.png" alt=""><br>emmmm，看着不规则的锯齿，难受。</p>
+<p>如果还不够明显，试试将wait设为50ms</p>
+<p><img src="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-10%20%E4%B8%8A%E5%8D%8811.29.50.png" alt=""></p>
+<p>看起来，要赶上每一个标准帧渲染的时机，不是那么容易，但是旁友，你听说过安利吗？哦走错片场了，是<code>requestAnimationFrame()</code>和<code>requestIdleCallback()</code>.</p>
+<p><strong>requestAnimationFrame()</strong></p>
+<blockquote>
+<p>The window.requestAnimationFrame() method tells the browser that you wish to perform an animation and requests that the browser call a specified function to update an animation before the next repaint. The method takes a callback as an argument to be invoked before the repaint.</p>
+</blockquote>
+<p>可以将它看做一个钩子，刚好卡在浏览器重绘前向我们的操作伸出橄榄枝。实际上它更像定时器，每秒60次执行回调——符合屏幕的刷新频率，遇到耗时长的操作，这个数字会降到30来保证稳定的帧数。</p>
+<p>语法也很简单：<code>window.requestAnimationFrame(callback)</code></p>
+<p>更改后的代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">const newScrollTop = this.getPosition(this.panes[index].$refs.content).top - this.distance</div><div class="line"></div><div class="line">function scrollStep() &#123;</div><div class="line">	document.documentElement.scrollTop += 5</div><div class="line">	if (document.documentElement.scrollTop &lt; newScrollTop) &#123;</div><div class="line">		window.requestAnimationFrame(scrollStep)</div><div class="line">	&#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">window.requestAnimationFrame(scrollStep)</div></pre></td></tr></table></figure>
+<p>与定时器很相似，只是鉴于其一次执行只调用一次回调，所以需要以递归的方式书写。</p>
+<p>测试一下：<br><img src="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-10%20%E4%B8%8A%E5%8D%8811.55.52.png" alt=""></p>
+<p>可以说是很顺滑了~</p>
+<p>兼容性呢？</p>
+<p><img src="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-10%20%E4%B8%8A%E5%8D%8811.43.22.png" alt=""></p>
+<p>不错不错~</p>
+<p><strong><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Window/requestAnimationFrame" target="_blank" rel="external">Learn more about requestAnimationFrame()</a></strong></p>
+<p><strong>requestIdleCallback()</strong></p>
+<blockquote>
+<p>The window.requestIdleCallback() method queues a function to be called during a browser’s idle periods. This enables developers to perform background and low priority work on the main event loop, without impacting latency-critical events such as animation and input response. Functions are generally called in first-in-first-out order; however, callbacks which have a timeout specified may be called out-of-order if necessary in order to run them before the timeout elapses.</p>
+</blockquote>
+<p>意思是，它会在一帧末尾浏览器空闲时触发回调，否则，推迟到下一帧。</p>
+<p>看定义，它适合应用于执行在后台运行或者优先度低的任务，但是鉴于我们的案例逻辑和计算都比较简单，应该能满足<strong>一帧末尾有空闲</strong>（毕竟标题是“不择手段”），have a try.</p>
+<p>实际上，基础使用上<code>requestIdleCallback()</code>和<code>requestAnimationFrame()</code>语法相同，代码修改甚至也只替换了方法名。</p>
+<p>应用情况呢？</p>
+<p><img src="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-10%20%E4%B8%8A%E5%8D%8811.58.33.png" alt=""></p>
+<p>也是如丝般顺滑~仔细看每一帧，我们会发现，Fire Idle Callback正如其定义，出现在每帧的最后。</p>
+<p>但是兼容性看起来除了chrome和FireFox之外，就不是那么友好了：<br><img src="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-10%20%E4%B8%8A%E5%8D%8811.59.16.png" alt=""></p>
+<p><strong>总结：</strong>在追求高性能的渲染效果时，可以考虑用<code>requestIdleCallback()</code>和<code>requestAnimationFrame()</code>代替定时器。前者适合流畅的动画效果场景，后者适用于分离一些优先级低的操作逻辑，使用时需要考虑清楚。</p>
+<h3 id="避免强制重排"><a href="#避免强制重排" class="headerlink" title="避免强制重排"></a>避免强制重排</h3><p>记忆力好的同学可能还记得，我们在之前描述浏览器渲染过程时，提到一个强制重排的概念，它的特点是，会插队！</p>
+<blockquote>
+<p>注意红线，意思是可能会在JS里强制重排，当访问scrollWidth系列、clientHeight系列、offsetTop系列、ComputedStyle等属性时，会触发这个效果，导致Style和Layout前移到JS代码执行过程中</p>
+</blockquote>
+<p>这个强制重排(force layout)听起来好像和重排很像啊，那么它和重排以及重绘是什么关系呢？</p>
+<p>优秀的前端工程师对重绘和重绘的概念已经很熟悉了，我这里就不再赘述。浏览器有自己的优化机制，包括之前提到的每帧只响应同类别的事件一次，再比如这里的会把一帧里的多次重排、重绘汇总成一次进行处理。</p>
+<p><strong>flush队列</strong>是浏览器进行重排、重绘等操作的队列，所有会引起重排重绘的操作都包含在内，比如dom修改、样式修改等。如果每次js操作都去执行一次重排重绘，那么浏览器一定会卡卡卡卡卡，所以浏览器通常是<strong>在一定的时间间隔（一帧）内，批量处理队列里的操作</strong>。但是，对于有些操作，比如获取元素相对父级元素左边界的偏移值（Element.offsetLeft），但在此之前我们进行了样式或者dom修改，这个操作还攒在flush队列里没有执行，那么浏览器为了让我们获取正确的offsetLeft（虽然之前的操作可能不会影响offsetLeft的值），就会立即执行队列里的操作。<br><img src="http://7xw3pf.com1.z0.glb.clouddn.com/flush111.png" alt=""></p>
+<p>所以我们知道了，就是这个特殊操作会影响浏览器正常的执行和渲染，假设我们频繁执行这样的特殊操作，就会打断浏览器原来的节奏，增大开销。</p>
+<p>而这个特殊操作，具体指的就是：</p>
+<ul>
+<li><code>elem.offsetLeft</code>, <code>elem.offsetTop</code>, <code>elem.offsetWidth</code>, <code>elem.offsetHeight</code>, <code>elem.offsetParent</code></li>
+<li><code>elem.clientLeft</code>, <code>elem.clientTop</code>, <code>elem.clientWidth</code>, <code>elem.clientHeight</code></li>
+<li><code>elem.getClientRects()</code>, <code>elem.getBoundingClientRect()</code></li>
+<li><code>elem.scrollWidth</code>, <code>elem.scrollHeight</code></li>
+<li><code>elem.scrollLeft</code>, <code>elem.scrollTop</code></li>
+<li>…</li>
+</ul>
+<p><strong><a href="https://gist.github.com/paulirish/5d52fb081b3570c81e3a" target="_blank" rel="external">See more：What forces layout / reflow</a></strong></p>
+<p>解决办法呢，有俩：</p>
+<ul>
+<li><p>基础版：使用前面提到过的<code>requestAnimationFrame()</code>，将以上特殊操作汇集并延迟入队</p>
+</li>
+<li><p>进阶版：使用第三方<a href="https://github.com/wilsonpage/fastdom" target="_blank" rel="external">FastDom</a>帮助我们自动完成读写操作的批处理,实际上它也是建立在<code>requestAnimationFrame()</code>上构造的。<a href="http://wilsonpage.github.io/fastdom/examples/animation.html" target="_blank" rel="external">官方提供的example</a>看起来效果简直优秀</p>
+<blockquote>
+<p>FastDom works as a regulatory layer between your app/library and the DOM. By batching DOM access we avoid unnecessary document reflows and dramatically speed up layout performance.<br>  Each measure/mutate job is added to a corresponding measure/mutate queue. The queues are emptied (reads, then writes) at the turn of the next frame using window.requestAnimationFrame.<br>  FastDom aims to behave like a singleton across all modules in your app. When any module requires ‘fastdom’ they get the same instance back, meaning FastDom can harmonize DOM access app-wide.<br>  Potentially a third-party library could depend on FastDom, and better integrate within an app that itself uses it.</p>
+</blockquote>
+</li>
+</ul>
+<p><strong>总结：</strong>谨慎使用以上特殊的读操作，要使用也尽量汇集、包裹（<code>requestAnimationFrame()</code>），避免单个裸奔。</p>
+<p><strong><a href="https://developers.google.com/web/tools/chrome-devtools/rendering-tools/forced-synchronous-layouts?hl=zh-cn" target="_blank" rel="external">Learn more about how to giagnose forced synchronous layouts with chrome DevTools</a></strong></p>
+<h3 id="提升合成层"><a href="#提升合成层" class="headerlink" title="提升合成层"></a>提升合成层</h3><p>不知道有没有人，曾经围坐在黑夜里的炉火旁边，听前端前辈们传递智慧的话语 —— 做位移效果时使用tranform代替top/left/bottom/right，尤其是移动端！</p>
+<p>why？</p>
+<p>因为top/left/bottom/right属性性能差呀 —— 这类属性会影响元素在文档中的布局，可能改变其他元素的位置，引起重排，造成性能开销</p>
+<p>因为tranform属性性能好呀 —— 使用transform属性（3D/animation）将元素提升至合成层，省去布局和绘制环节，美滋滋~</p>
+<p>说到这里，你可能还不是太清楚合成层的概念，其实看这篇就够了：<a href="http://taobaofed.org/blog/2016/04/25/performance-composite/" target="_blank" rel="external">无线性能优化：Composite</a></p>
+<p>但是照顾一下有些“太长不看”猫病的旁友们，在这里做一些总结。</p>
+<ol>
+<li><p>一些属性会让元素们<strong>创建出不同的渲染层</strong></p>
+<ul>
+<li>有明确的定位属性（relative、fixed、sticky、absolute）</li>
+<li>透明的（opacity 小于 1）</li>
+<li>有 CSS 滤镜（fliter）</li>
+<li>有 CSS transform 属性（不为 none）</li>
+<li>…</li>
+</ul>
+</li>
+<li><p>达成一些条件，<strong>渲染层会提升为合成层</strong></p>
+<ul>
+<li>硬件加速的 iframe 元素（比如 iframe 嵌入的页面中有合成层）</li>
+<li>3D 或者 硬件加速的 2D Canvas 元素</li>
+<li>video 元素</li>
+<li>有 3D transform</li>
+<li>对 opacity、transform、fliter、backdropfilter 应用了 animation 或者 transition</li>
+<li>will-change 设置为 opacity、transform、top、left、bottom、right（其中 top、left 等需要设置明确的定位属性，如 relative 等）</li>
+<li>…</li>
+</ul>
+</li>
+</ol>
+<p>提升为合成层干什么呢？普通的渲染层普通地渲染，用普通的顺序普通地合成不好吗？非要搞啥特殊待遇！</p>
+<p>浏览器就说了：我这也是为了大家共同进步（提升速度）！看那些搞特殊待遇的，都是一些拖我们队伍后腿的(性能开销大)，分开处理，才能保证整个队伍稳定快速的进步！</p>
+<p><strong>特殊待遇</strong>：合成层的位图，会交由 GPU 合成，比 CPU 处理要快。当需要 repaint 时，只需要 repaint 本身，不会影响到其他的层。</p>
+<blockquote>
+<p>对布局属性进行动画，浏览器需要为每一帧进行重绘并上传到 GPU 中</p>
+<p>对合成属性进行动画，浏览器会为元素创建一个独立的复合层，当元素内容没有发生改变，该层就不会被重绘，浏览器会通过重新复合来创建动画帧</p>
+</blockquote>
+<p>所以，从合成层出发，为了优化scroll性能，我们可以做这些：</p>
+<p><strong><a href="https://developer.mozilla.org/zh-CN/docs/Web/CSS/will-change" target="_blank" rel="external">will-change</a></strong></p>
+<p>提升合成层的有效方式，应用这个属性，实际上是提前通知浏览器，为接下来的动画效果操作做准备。值得注意的是</p>
+<ul>
+<li><p>不要将 will-change 应用到太多元素上，增加渲染层意味着新的内存分配和更复杂的层的管理</p>
+</li>
+<li><p>有节制地使用。动态样式增加比一开始就写在样式表里更能减少不必要的开销。</p>
+</li>
+</ul>
+<p>示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">will-change: scroll-position // 表示开发者希望在不久后改变滚动条的位置或者使之产生动画。</div></pre></td></tr></table></figure>
+<p>然后，国际惯例【并不，附上兼容性</p>
+<p><img src="http://7xw3pf.com1.z0.glb.clouddn.com/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-11%20%E4%B8%8B%E5%8D%883.59.18.png" alt=""></p>
+<p><strong>除此之外</strong></p>
+<ul>
+<li><p>使用 transform 或者 opacity 来实现动画效果</p>
+</li>
+<li><p>对于较少可能变化的区域，防止页面其他部分重绘时影响这一片，考虑提升至合成层。</p>
+</li>
+<li><p>提升合成层的hack方法：<code>translateZ(0)</code></p>
+</li>
+</ul>
+<p><strong>总结：</strong>从合成层的角度作为性能提升的下手方向，是值得肯定的，但是具体采用什么样的方案，还是要先切实地分析页面的实际性能表现，根据不同的场景，综合考虑方案的得失，再总结出正确的优化途径。</p>
+<h3 id="what’s-more"><a href="#what’s-more" class="headerlink" title="what’s more"></a>what’s more</h3><h4 id="使用css属性代替js“模拟操作”"><a href="#使用css属性代替js“模拟操作”" class="headerlink" title="使用css属性代替js“模拟操作”"></a>使用css属性代替js“模拟操作”</h4><p><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-behavior" target="_blank" rel="external">scroll-behavior</a></p>
+<blockquote>
+<p>The scroll-behavior CSS property specifies the scrolling behavior for a scrolling box, when scrolling happens due to navigation or CSSOM scrolling APIs. Any other scrolls, e.g. those that are performed by the user, are not affected by this property. When this property is specified on the root element, it applies to the viewport instead.</p>
+</blockquote>
+<p>可以借此实现affix，而不用使用定时器或<code>requestAnimationFrame</code>模拟平滑的scroll操作</p>
+<p>demo戳：<a href="https://developer.mozilla.org/zh-CN/docs/Web/CSS/scroll-behavior" target="_blank" rel="external">锚点链接+scroll-behavior</a></p>
+<p><img src="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance2017-10-11_19-36-59.gif" alt=""></p>
+<p>但是目前仅是实验性的功能，残念<br><img src="http://7xw3pf.com1.z0.glb.clouddn.com/scroll-performance%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-10-11%20%E4%B8%8B%E5%8D%887.40.28.png" alt=""></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>页面渲染性能的优化涉及方方面面，这里只是以scroll事件为立足点分析列举了一些改善的方法，深入性和全面性都不足，但更多希望能起到一个引子的作用，给有心深入的同学一个概括性的印象。</p>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p>以下这些大大们的文章都很值得阅读分析做笔记！</p>
+<ul>
+<li><p><a href="https://developers.google.com/web/fundamentals/performance/rendering/?hl=zh-cn" target="_blank" rel="external">渲染性能</a></p>
+</li>
+<li><p><a href="https://github.com/chokcoco/cnblogsArticle/issues/12" target="_blank" rel="external">【前端性能】高性能滚动 scroll 及页面渲染优化</a></p>
+</li>
+<li><p><a href="https://chuckliu.me/#!/posts/58ea6af15dc1822fa9a57274" target="_blank" rel="external">浏览器渲染详细过程：重绘、重排和 composite 只是冰山一角</a></p>
+</li>
+<li><p><a href="https://dzone.com/articles/web-workers-responsive" target="_blank" rel="external">Web Workers, for a responsive JavaScript application</a></p>
+</li>
+<li><p><a href="https://github.com/hanzichi/underscore-analysis/issues/20" target="_blank" rel="external">JavaScript 函数节流和函数去抖应用场景辨析</a></p>
+</li>
+<li><p><a href="https://github.com/aooy/blog/issues/5" target="_blank" rel="external">从event loop规范探究javaScript异步及浏览器更新渲染时机</a></p>
+</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/09/vue事件处理eventBus之坑/" rel="next" title="【踩坑】Vue-eventBus异常触发事件情形">
+                <i class="fa fa-chevron-left"></i> 【踩坑】Vue-eventBus异常触发事件情形
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="escawn" />
+          <p class="site-author-name" itemprop="name">escawn</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/escawn" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#TL-DR"><span class="nav-number">1.</span> <span class="nav-text">TL;DR</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#场景"><span class="nav-number">2.</span> <span class="nav-text">场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#原理"><span class="nav-number">3.</span> <span class="nav-text">原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#帧维度解释帧渲染过程"><span class="nav-number">3.1.</span> <span class="nav-text">帧维度解释帧渲染过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进一步解释浏览器主要执行步骤"><span class="nav-number">3.2.</span> <span class="nav-text">进一步解释浏览器主要执行步骤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#再进一步解释浏览器渲染流程"><span class="nav-number">3.3.</span> <span class="nav-text">再进一步解释浏览器渲染流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解决方案"><span class="nav-number">4.</span> <span class="nav-text">解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#简化js内操作"><span class="nav-number">4.1.</span> <span class="nav-text">简化js内操作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#使用web-worker"><span class="nav-number">4.1.1.</span> <span class="nav-text">使用web worker</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#函数节流与函数去抖"><span class="nav-number">4.1.2.</span> <span class="nav-text">函数节流与函数去抖</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#去定时器"><span class="nav-number">4.2.</span> <span class="nav-text">去定时器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#避免强制重排"><span class="nav-number">4.3.</span> <span class="nav-text">避免强制重排</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#提升合成层"><span class="nav-number">4.4.</span> <span class="nav-text">提升合成层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what’s-more"><span class="nav-number">4.5.</span> <span class="nav-text">what’s more</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#使用css属性代替js“模拟操作”"><span class="nav-number">4.5.1.</span> <span class="nav-text">使用css属性代替js“模拟操作”</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考链接"><span class="nav-number">6.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">escawn</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'escawn';
+      var disqus_identifier = '2017/10/18/如何不择手段提升scroll事件的性能/';
+
+      var disqus_title = "如何不择手段提升scroll事件的性能";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("9HP4rlEkpBpsaDmhTYhfd8Xp-gzGzoHsz", "er5gMBJFD2fafEBnkPfgRzs9");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+
+  
+
+
+</body>
+</html>

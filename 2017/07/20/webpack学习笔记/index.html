@@ -1,0 +1,1255 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|sourcesanspro:300,300italic,400,400italic,700,700italic|consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="webpack," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Escawn" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="摘要webpack是当下流行的前端工程打包工具，本文较深入地分析了其运作原理，以及一些常用功能的实现思路。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="webpack进阶学习">
+<meta property="og:url" content="https://escawn.github.io/2017/07/20/webpack学习笔记/index.html">
+<meta property="og:site_name" content="Escawn">
+<meta property="og:description" content="摘要webpack是当下流行的前端工程打包工具，本文较深入地分析了其运作原理，以及一些常用功能的实现思路。">
+<meta property="og:image" content="https://escawn.github.io/...">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1945738-f1379447d7a0417c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://img.alicdn.com/tps/TB1GVGFNXXXXXaTapXXXXXXXXXX-4436-4244.jpg">
+<meta property="og:updated_time" content="2017-07-25T09:27:09.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="webpack进阶学习">
+<meta name="twitter:description" content="摘要webpack是当下流行的前端工程打包工具，本文较深入地分析了其运作原理，以及一些常用功能的实现思路。">
+<meta name="twitter:image" content="https://escawn.github.io/...">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://escawn.github.io/2017/07/20/webpack学习笔记/"/>
+
+
+
+
+
+  <title> webpack进阶学习 | Escawn </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?b33ff7e3b9f0d06afa976748bb45394e";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Escawn</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://escawn.github.io/2017/07/20/webpack学习笔记/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="escawn">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Escawn">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                webpack进阶学习
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-07-20T19:23:42+08:00">
+                2017-07-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/学习笔记/" itemprop="url" rel="index">
+                    <span itemprop="name">学习笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+          
+            <span class="post-letters-count">
+              &nbsp; | &nbsp;
+              <span>5,058 字</span>
+              &nbsp; | &nbsp;
+              <span>20 min</span>
+            </span>
+          
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/07/20/webpack学习笔记/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/07/20/webpack学习笔记/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/07/20/webpack学习笔记/" class="leancloud_visitors" data-flag-title="webpack进阶学习">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>webpack是当下流行的前端工程打包工具，本文较深入地分析了其运作原理，以及一些常用功能的实现思路。<br><a id="more"></a></p>
+<hr>
+<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><blockquote>
+<p>Webpack 是当下最热门的前端资源模块化管理和打包工具。它可以将许多松散的模块按照依赖和规则打包成符合生产环境部署的前端资源。还可以将按需加载的模块进行代码分隔，等到实际需要的时候再异步加载。通过 loader 的转换，任何形式的资源都可以视作模块，比如 CommonJs 模块、 AMD 模块、 ES6 模块、CSS、图片、 JSON、Coffeescript、 LESS 等。</p>
+</blockquote>
+<h3 id="概念介绍"><a href="#概念介绍" class="headerlink" title="概念介绍"></a>概念介绍</h3><h4 id="Entry"><a href="#Entry" class="headerlink" title="Entry"></a>Entry</h4><h5 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h5><p>在<code>webpack.config.js</code>中配置，含义为指定注入webpack的文件，由这个文件引出的依赖集合导向一个自命名<code>chunk</code>，默认名为<code>main</code>。webpack将从这个文件开始，一步步分析模块依赖，并进行模块的处理。</p>
+<h5 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h5><p>entry是一个对象，对象里键值对的形式为</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">entry: &#123;</div><div class="line">	chunkName: entry file&apos;s path</div><div class="line">&#125;</div><div class="line">// 如</div><div class="line">entry: &#123;</div><div class="line">    main: &apos;./path/to/my/entry/file.js&apos;</div><div class="line">  &#125;</div><div class="line">// 多文件入口</div><div class="line">entry: &#123;</div><div class="line">    app: &apos;./src/app.js&apos;,</div><div class="line">    vendors: &apos;./src/vendors.js&apos;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>多文件入口用于chunk形成的依赖图是独立的情况下，多用于单页面应用+第三方库或多页面应用的情况下。</p>
+<h4 id="Chunks"><a href="#Chunks" class="headerlink" title="Chunks"></a>Chunks</h4><h5 id="介绍-1"><a href="#介绍-1" class="headerlink" title="介绍"></a>介绍</h5><p>chunk是webpack代码分离(code splitting)的产物，里面装载了一系列具有依赖关系的模块。</p>
+<h5 id="chunk类别"><a href="#chunk类别" class="headerlink" title="chunk类别"></a>chunk类别</h5><ul>
+<li><p>entry chunk：入口代码块包含了 webpack 运行时需要的一些函数，以及依赖的一系列模块。通过<code>output.filename</code>配置输出</p>
+</li>
+<li><p>normal chunk：普通代码块（又名非主入口文件）没有包含运行时需要的代码，主要指代那些应用运行时动态加载（比如<code>require.ensure</code>）的模块。</p>
+</li>
+<li><p>initial chunk：通过<code>output.chunkfilename</code>配置输出，是这个插件提取共有模块形成的chunk,其会在应用初始化时完成加载</p>
+</li>
+</ul>
+<h5 id="对应关系"><a href="#对应关系" class="headerlink" title="对应关系"></a>对应关系</h5><p>以下chunk均指entry chunk</p>
+<ul>
+<li>chunk &amp; entry file：一个入口文件对应一个chunk，由入口文件引出的依赖集合导向一个chunk。但是chunk不仅由入口文件导出，提取公共模块、动态加载模块也可生成chunk</li>
+<li>chunk &amp; bundle：默认情况下一个chunk最终导出一个同名bundle文件</li>
+</ul>
+<h4 id="Output"><a href="#Output" class="headerlink" title="Output"></a>Output</h4><h5 id="介绍-2"><a href="#介绍-2" class="headerlink" title="介绍"></a>介绍</h5><p>控制 webpack 如何向硬盘写入编译文件</p>
+<h5 id="语法-1"><a href="#语法-1" class="headerlink" title="语法"></a>语法</h5><p>一个对象，至少含有键为<code>filename</code>和<code>path</code>的两个键值对</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">output: &#123;</div><div class="line">    <span class="attr">filename</span>: <span class="string">'bundle.js'</span>,</div><div class="line">    <span class="attr">path</span>: <span class="string">'/home/proj/public/assets'</span></div><div class="line">&#125;</div><div class="line"><span class="comment">// 当有多个入口，使用占位符自动配置成与chunkName同名的出口文件名字和路径</span></div><div class="line">output: &#123;</div><div class="line">    <span class="attr">filename</span>: <span class="string">'[name].js'</span>,</div><div class="line">    <span class="attr">path</span>: __dirname + <span class="string">'/dist'</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h4 id="Bundle"><a href="#Bundle" class="headerlink" title="Bundle"></a>Bundle</h4><p>bundle是 webpack 打包后的产物，可以通过配置设置其在硬盘中的存储位置。<br>一般一个bundle对应一个chunk。</p>
+<p>使用webpack-dev-server进行开发时，编译在内存中进行，bundle不存储在硬盘中.</p>
+<h4 id="Loader"><a href="#Loader" class="headerlink" title="Loader"></a>Loader</h4><h5 id="介绍-3"><a href="#介绍-3" class="headerlink" title="介绍"></a>介绍</h5><p>loader 用于对模块的源代码进行转换。将其他类型的资源转换成js模块，交给webpack处理</p>
+<h5 id="特性"><a href="#特性" class="headerlink" title="特性"></a>特性</h5><ol>
+<li>支持链式调用，一个loader的输出可以是另一个Loader的输入</li>
+<li>可以同步或异步执行</li>
+<li>可以接受参数</li>
+<li>通过文件扩展名（正则）绑定不同类型的文件</li>
+<li>通过npm发布和安装</li>
+<li>可以自己书写loader，作为一个模块导出使用</li>
+</ol>
+<h5 id="语法-2"><a href="#语法-2" class="headerlink" title="语法"></a>语法</h5><p>loader的配置挂在<code>module.rules（array）</code>下，webpack 允许配置多个loader，可选并不限于以下键值对</p>
+<ul>
+<li>匹配类（必）：匹配文件来应用规则，如<code>test</code>(正则语法，多用于文件后缀的匹配)，<code>include</code>（string或array，多用于文件路径的匹配），<code>enclude</code>（string或array，剔除匹配的文件）</li>
+<li><code>loader</code>（必）：值为loader name（string），多为<code>xxx-loader</code>的形式</li>
+<li><code>enforce</code>（非必）：值为<code>pre</code>|<code>post</code>，指定 loader 种类。所有 loader 通过 后置, 行内, 普通, 前置 排序，并按此顺序使用。</li>
+<li><code>options</code>（非必）：值为string或object，值可以传递到 loader 中，将其理解为 loader 选项。</li>
+<li><code>parse</code>（非必）：值为object，是解析选项配置的集合，配置完成之后，相关插件可以被启用。如<code>commonJs：false</code>表示禁用CommonJs</li>
+</ul>
+<p>示例</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">module: &#123;</div><div class="line">  rules: [</div><div class="line">    // 匹配后缀为图片类的文件</div><div class="line">    test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,</div><div class="line">    // 应用url-loader</div><div class="line">    loader: &apos;url-loader&apos;,</div><div class="line">    // 配置传递给loader的选项</div><div class="line">    options: &#123;</div><div class="line">      limit: 10000,</div><div class="line">      name: utils.assetsPath(&apos;img/[name].[hash:7].[ext]&apos;)</div><div class="line">    &#125;</div><div class="line">  ]</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h4 id="Plugin"><a href="#Plugin" class="headerlink" title="Plugin"></a>Plugin</h4><h5 id="介绍-4"><a href="#介绍-4" class="headerlink" title="介绍"></a>介绍</h5><p>plugin是webpack核心支柱功能，通过plugin（插件）webpack可以实现loader所不能完成的复杂功能，使用plugin丰富的自定义API以及生命周期事件，可以控制webpack编译流程的每个环节，实现对webpack的自定义功能扩展。</p>
+<h5 id="原理概览"><a href="#原理概览" class="headerlink" title="原理概览"></a>原理概览</h5><blockquote>
+<p>插件是一个具有<code>apply</code>方法的 JavaScript 对象。webpack有一个实现插件绑定与调用的库（<code>tapable</code>），贯穿整个webpack打包编译过程。不同的插件通过自身的<code>apply</code>方法调用<code>tapable</code>的<code>plugin</code>方法，将插件添加到<code>compiler</code>对象，<code>compiler</code>对象可在整个编译生命周期访问，插件从而实现在编译的不同时期对文件进行相应的处理。</p>
+</blockquote>
+<h5 id="用法"><a href="#用法" class="headerlink" title="用法"></a>用法</h5><ul>
+<li>先安装: <code>npm install --save html-webpack-plugin</code></li>
+<li>再导入：<code>const HtmlWebpackPlugin = require(&#39;html-webpack-plugin&#39;)</code></li>
+<li><p>最后配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">plugins: [</div><div class="line">	 // 各个插件配置时需要的参数不一，请参考官方文档</div><div class="line">  new webpack.optimize.UglifyJsPlugin(),</div><div class="line">  new HtmlWebpackPlugin(&#123;template: &apos;./src/index.html&apos;&#125;)</div><div class="line">]</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h4 id="Modules"><a href="#Modules" class="headerlink" title="Modules"></a>Modules</h4><h5 id="介绍-5"><a href="#介绍-5" class="headerlink" title="介绍"></a>介绍</h5><p>模块是实现特定功能的功能块。webpack的核心理念就是<code>一切皆模块</code>,将所有资源以及文件转化为模块。</p>
+<h5 id="webpack中的模块类型"><a href="#webpack中的模块类型" class="headerlink" title="webpack中的模块类型"></a>webpack中的模块类型</h5><blockquote>
+<ul>
+<li>ES2015 import 语句</li>
+<li>CommonJS require() 语句</li>
+<li>AMD define 和 require 语句</li>
+<li>css/sass/less 文件中的 @import 语句。</li>
+<li>样式(url(…))或 HTML 文件 <img src="...">中的图片链接(image url)</li>
+</ul>
+</blockquote>
+<h3 id="配置应用"><a href="#配置应用" class="headerlink" title="配置应用"></a>配置应用</h3><h4 id="基础文件结构"><a href="#基础文件结构" class="headerlink" title="基础文件结构"></a>基础文件结构</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">├── node-modules</div><div class="line">├── package.json</div><div class="line">├── dist</div><div class="line">│   └── bundle.js 	  	 // webpack打包好的文件</div><div class="line">├── src</div><div class="line">│   └── entry.js 		 // webpack打包的入口文件</div><div class="line">├── webpack.config.js    // webpack配置文件</div><div class="line">└── index.html 			 // 主页面，通过script标签将bundle引入</div></pre></td></tr></table></figure>
+<h4 id="webpack-config-js详解"><a href="#webpack-config-js详解" class="headerlink" title="webpack.config.js详解"></a>webpack.config.js详解</h4><p><code>webpack.config.js</code>是一个node.js模块，导出json格式的配置信息对象</p>
+<p>包含要配置的内容：</p>
+<ul>
+<li><code>entry</code></li>
+<li><code>output</code></li>
+<li><code>loader</code></li>
+<li><code>plugin</code></li>
+<li><code>resolve</code></li>
+</ul>
+<h5 id="详细示例"><a href="#详细示例" class="headerlink" title="详细示例"></a>详细示例</h5><p>通过vue-cli创建项目，build文件夹下自动生成四个webpack配置文件</p>
+<ul>
+<li><code>webpack.base.conf.js</code>：基础，或者说公共webpack配置</li>
+<li><code>webpack.dev.conf.js</code>：开发环境下的webpack配置</li>
+<li><code>webpack.prod.conf.js</code>：生成环境下的webpack配置</li>
+<li><code>webpack.test.conf.js</code>：测试阶段的webpack配置</li>
+</ul>
+<p>这里主要关注前三个配置文件</p>
+<h6 id="webpack-base-conf-js"><a href="#webpack-base-conf-js" class="headerlink" title="webpack.base.conf.js"></a><code>webpack.base.conf.js</code></h6><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> path = <span class="built_in">require</span>(<span class="string">'path'</span>)</div><div class="line"><span class="keyword">var</span> utils = <span class="built_in">require</span>(<span class="string">'./utils'</span>)</div><div class="line"><span class="keyword">var</span> config = <span class="built_in">require</span>(<span class="string">'../config'</span>)</div><div class="line"><span class="keyword">var</span> vueLoaderConfig = <span class="built_in">require</span>(<span class="string">'./vue-loader.conf'</span>)</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">resolve</span> (<span class="params">dir</span>) </span>&#123;</div><div class="line">  <span class="keyword">return</span> path.join(__dirname, <span class="string">'..'</span>, dir)</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="built_in">module</span>.exports = &#123;</div><div class="line">  <span class="attr">entry</span>: &#123;                                                <span class="comment">// 配置入口文件</span></div><div class="line">	app: <span class="string">'./src/main.js'</span>                                  <span class="comment">// app为chunk名，'./src/main.js'为文件路径</span></div><div class="line">  &#125;,</div><div class="line">  <span class="attr">output</span>: &#123;</div><div class="line">    <span class="attr">path</span>: config.build.assetsRoot,                        <span class="comment">//  打包好的文件储存路径  </span></div><div class="line">    filename: <span class="string">'[name].js'</span>,                                <span class="comment">//  表示根据入口文件的chunk name自动生成对应名字的bundle</span></div><div class="line">    publicPath: process.env.NODE_ENV === <span class="string">'production'</span>     <span class="comment">//  通过判断是否在生产环境下制定内嵌文件（如css、图片）的路径前缀</span></div><div class="line">      ? config.build.assetsPublicPath</div><div class="line">      : config.dev.assetsPublicPath</div><div class="line">  &#125;,</div><div class="line">  <span class="attr">resolve</span>: &#123;                                              <span class="comment">//  配置模块路径的解析器</span></div><div class="line">    extensions: [<span class="string">'.js'</span>, <span class="string">'.vue'</span>, <span class="string">'.json'</span>],                 <span class="comment">//  表示解析器支持以下文件后缀名的文件解析</span></div><div class="line">    alias: &#123;                                              <span class="comment">//  创建模块别名代替路径名</span></div><div class="line">      <span class="string">'vue$'</span>: <span class="string">'vue/dist/vue.esm.js'</span>,                      <span class="comment">//  import或require`vue.esm.js`文件时，可用`vue$`代替</span></div><div class="line">      <span class="string">'@'</span>: resolve(<span class="string">'src'</span>)                                 <span class="comment">//  import或require ‘src’文件夹下的模块时，可用'@'作为路径代替  </span></div><div class="line">    &#125;</div><div class="line">  &#125;,</div><div class="line">  <span class="attr">module</span>: &#123;</div><div class="line">    <span class="attr">rules</span>: [                                              <span class="comment">//  webpack2&amp;webpack3中通过module.rules设置loader</span></div><div class="line">      &#123;</div><div class="line">        <span class="attr">test</span>: <span class="regexp">/\.(js|vue)$/</span>,                              <span class="comment">//  匹配js和vue为后缀的文件，应用此条rule</span></div><div class="line">        loader: <span class="string">'eslint-loader'</span>,                          <span class="comment">//  使用eslint-loader作为转换器</span></div><div class="line">        enforce: <span class="string">'pre'</span>,                                   <span class="comment">//  enforce指定loader种类，pre表示此loader最先执行</span></div><div class="line">        include: [resolve(<span class="string">'src'</span>), resolve(<span class="string">'test'</span>)],       <span class="comment">//  匹配此文件夹下的资源</span></div><div class="line">        options: &#123;                                        <span class="comment">//  loader选项，里面的值可以传到loader中</span></div><div class="line">          formatter: <span class="built_in">require</span>(<span class="string">'eslint-friendly-formatter'</span>) <span class="comment">//  代码检查配置工具</span></div><div class="line">        &#125;</div><div class="line">      &#125;,</div><div class="line">      &#123;</div><div class="line">        <span class="attr">test</span>: <span class="regexp">/\.vue$/</span>,                                   <span class="comment">//  解析vue为后缀的文件，使用vue-loader转换</span></div><div class="line">        loader: <span class="string">'vue-loader'</span>,</div><div class="line">        <span class="attr">options</span>: vueLoaderConfig</div><div class="line">      &#125;,</div><div class="line">      &#123;</div><div class="line">        <span class="attr">test</span>: <span class="regexp">/\.js$/</span>,                                    <span class="comment">//  解析js为后缀的文件，使用babel-loader转换（针对es6语法）</span></div><div class="line">        loader: <span class="string">'babel-loader'</span>,</div><div class="line">        <span class="attr">include</span>: [resolve(<span class="string">'src'</span>), resolve(<span class="string">'test'</span>)]</div><div class="line">      &#125;,</div><div class="line">      &#123;</div><div class="line">        <span class="attr">test</span>: <span class="regexp">/\.(png|jpe?g|gif|svg)(\?.*)?$/</span>,            <span class="comment">//  转换图片类文件</span></div><div class="line">        loader: <span class="string">'url-loader'</span>,</div><div class="line">        <span class="attr">options</span>: &#123;</div><div class="line">          <span class="attr">limit</span>: <span class="number">10000</span>,                                   <span class="comment">//  限制文件的url字节</span></div><div class="line">          name: utils.assetsPath(<span class="string">'img/[name].[hash:7].[ext]'</span>)</div><div class="line">        &#125;</div><div class="line">      &#125;,</div><div class="line">      &#123;</div><div class="line">        <span class="attr">test</span>: <span class="regexp">/\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/</span>,<span class="comment">//  转换音视频类文件</span></div><div class="line">        loader: <span class="string">'url-loader'</span>,</div><div class="line">        <span class="attr">options</span>: &#123;</div><div class="line">          <span class="attr">limit</span>: <span class="number">10000</span>,                                   <span class="comment">//  限制文件的url字节</span></div><div class="line">          name: utils.assetsPath(<span class="string">'media/[name].[hash:7].[ext]'</span>)     </div><div class="line">        &#125;</div><div class="line">      &#125;,</div><div class="line">      &#123;</div><div class="line">        <span class="attr">test</span>: <span class="regexp">/\.(woff2?|eot|ttf|otf)(\?.*)?$/</span>,           <span class="comment">//  转换字体类文件</span></div><div class="line">        loader: <span class="string">'url-loader'</span>,</div><div class="line">        <span class="attr">options</span>: &#123;</div><div class="line">          <span class="attr">limit</span>: <span class="number">10000</span>,</div><div class="line">          <span class="attr">name</span>: utils.assetsPath(<span class="string">'fonts/[name].[hash:7].[ext]'</span>)</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line">    ]</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h6 id="webpack-dev-conf-js"><a href="#webpack-dev-conf-js" class="headerlink" title="webpack.dev.conf.js"></a><code>webpack.dev.conf.js</code></h6><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// dev-client文件里封装了与hot-reload相关的代码，将它们加进entry chunk里</span></div><div class="line"><span class="built_in">Object</span>.keys(baseWebpackConfig.entry).forEach(<span class="function"><span class="keyword">function</span> (<span class="params">name</span>) </span>&#123;</div><div class="line">  baseWebpackConfig.entry[name] = [<span class="string">'./build/dev-client'</span>].concat(baseWebpackConfig.entry[name])</div><div class="line">&#125;)</div><div class="line"></div><div class="line"><span class="comment">// merge webpack基础配置</span></div><div class="line"><span class="built_in">module</span>.exports = merge(baseWebpackConfig, &#123;</div><div class="line">  <span class="attr">module</span>: &#123;</div><div class="line"></div><div class="line">    <span class="comment">// 生成源文件和压缩文件对应的sourceMap</span></div><div class="line">    rules: utils.styleLoaders(&#123; <span class="attr">sourceMap</span>: config.dev.cssSourceMap &#125;)</div><div class="line">  &#125;,</div><div class="line"></div><div class="line">  <span class="comment">// cheap-module-eval-source-map is faster for development</span></div><div class="line">  <span class="comment">// 选用此配置作为sourceMap的构建工具,这个工具会帮助在chrome下显示源码文件</span></div><div class="line">  devtool: <span class="string">'#cheap-module-eval-source-map'</span>,</div><div class="line">  <span class="attr">plugins</span>: [</div><div class="line"></div><div class="line">    <span class="comment">// 定义开发环境,代码中任何出现 process.env的地方都会被替换为config.dev.env</span></div><div class="line">    <span class="keyword">new</span> webpack.DefinePlugin(&#123;</div><div class="line">      <span class="string">'process.env'</span>: config.dev.env</div><div class="line">    &#125;),</div><div class="line"></div><div class="line">    <span class="comment">// https://github.com/glenjamin/webpack-hot-middleware#installation--usage</span></div><div class="line">    <span class="comment">// 此插件用于在应用程序运行过程中代码修改时，只修改相关模块而无需重新加载整个页面</span></div><div class="line">    <span class="keyword">new</span> webpack.HotModuleReplacementPlugin(),</div><div class="line"></div><div class="line">    <span class="comment">// 使用此插件在编译出现错误时跳过输出阶段。这样可以确保输出资源不会包含错误。</span></div><div class="line">    <span class="keyword">new</span> webpack.NoEmitOnErrorsPlugin(),</div><div class="line"></div><div class="line">    <span class="comment">// https://github.com/ampedandwired/html-webpack-plugin</span></div><div class="line">    <span class="comment">// 此插件用于自动生成html文件，不需要手动创建，再通过script标签引入打包后的bundle</span></div><div class="line">    <span class="keyword">new</span> HtmlWebpackPlugin(&#123;</div><div class="line">      <span class="attr">filename</span>: <span class="string">'index.html'</span>,</div><div class="line">      <span class="attr">template</span>: <span class="string">'index.html'</span>,</div><div class="line">      <span class="attr">inject</span>: <span class="literal">true</span></div><div class="line">    &#125;),</div><div class="line"></div><div class="line">    <span class="comment">// 此插件用于识别、汇总、清理报错</span></div><div class="line">    <span class="keyword">new</span> FriendlyErrorsPlugin()</div><div class="line">  ]</div><div class="line">&#125;)</div></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h6 id="webpack-prod-conf-js"><a href="#webpack-prod-conf-js" class="headerlink" title="webpack.prod.conf.js"></a><code>webpack.prod.conf.js</code></h6><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// merge webpack基础配置</span></div><div class="line"><span class="keyword">var</span> webpackConfig = merge(baseWebpackConfig, &#123;</div><div class="line">  <span class="attr">module</span>: &#123;</div><div class="line">    <span class="comment">// utils模块里封装了样式处理loader，可传入两个键值对，是否开启sourceMap和是否启用插件ExtractTextWebpackPlugin</span></div><div class="line">    rules: utils.styleLoaders(&#123;</div><div class="line">      <span class="attr">sourceMap</span>: config.build.productionSourceMap,</div><div class="line">      <span class="comment">// 意为将所有的入口 chunk(entry chunks)中引用的样式文件，移动到独立分离的 CSS 文件</span></div><div class="line">      extract: <span class="literal">true</span></div><div class="line">    &#125;)</div><div class="line">  &#125;,</div><div class="line"></div><div class="line">  <span class="comment">// 使用source-map作为sourceMap的构建工具</span></div><div class="line">  devtool: config.build.productionSourceMap ? <span class="string">'#source-map'</span> : <span class="literal">false</span>,</div><div class="line"></div><div class="line">  <span class="comment">// 定义output导出路径</span></div><div class="line">  output: &#123;</div><div class="line">    <span class="attr">path</span>: config.build.assetsRoot,</div><div class="line">    <span class="attr">filename</span>: utils.assetsPath(<span class="string">'js/[name].[chunkhash].js'</span>),</div><div class="line">    <span class="comment">// 非主入口文件的命名规则，非主入口文件一般出现在require.ensure加载模块的时候（异步加载模块，而未给入口文件）</span></div><div class="line">    chunkFilename: utils.assetsPath(<span class="string">'js/[id].[chunkhash].js'</span>)</div><div class="line">  &#125;,</div><div class="line"></div><div class="line">  <span class="attr">plugins</span>: [</div><div class="line">    <span class="comment">// http://vuejs.github.io/vue-loader/en/workflow/production.html</span></div><div class="line">    <span class="comment">// 定义生产环境,代码中任何出现 process.env的地方都会被替换为env</span></div><div class="line">    <span class="keyword">new</span> webpack.DefinePlugin(&#123;</div><div class="line">      <span class="string">'process.env'</span>: env</div><div class="line">    &#125;),</div><div class="line"></div><div class="line">    <span class="comment">// 混淆代码</span></div><div class="line">    <span class="keyword">new</span> webpack.optimize.UglifyJsPlugin(&#123;</div><div class="line">      <span class="attr">compress</span>: &#123;</div><div class="line">        <span class="attr">warnings</span>: <span class="literal">false</span></div><div class="line">      &#125;,</div><div class="line">      <span class="attr">sourceMap</span>: <span class="literal">true</span></div><div class="line">    &#125;),</div><div class="line"></div><div class="line">    <span class="comment">// extract css into its own file</span></div><div class="line">    <span class="comment">// 将所有的入口chunk中引用的样式*.css，移动到独立分离的 CSS 文件。</span></div><div class="line">    <span class="keyword">new</span> ExtractTextPlugin(&#123;</div><div class="line">      <span class="attr">filename</span>: utils.assetsPath(<span class="string">'css/[name].[contenthash].css'</span>)</div><div class="line">    &#125;),</div><div class="line"></div><div class="line">    <span class="comment">// Compress extracted CSS. We are using this plugin so that possible</span></div><div class="line">    <span class="comment">// duplicated CSS from different components can be deduped.</span></div><div class="line">    <span class="comment">// 压缩独立的css样式文件代码，并进行优化</span></div><div class="line">    <span class="keyword">new</span> OptimizeCSSPlugin(&#123;</div><div class="line">      <span class="attr">cssProcessorOptions</span>: &#123;</div><div class="line">        <span class="attr">safe</span>: <span class="literal">true</span></div><div class="line">      &#125;</div><div class="line">    &#125;),</div><div class="line"></div><div class="line">    <span class="comment">// generate dist index.html with correct asset hash for caching.</span></div><div class="line">    <span class="comment">// you can customize output by editing /index.html</span></div><div class="line">    <span class="comment">// see https://github.com/ampedandwired/html-webpack-plugin</span></div><div class="line">    <span class="comment">// 此插件用于自动生成html文件，不需要手动创建，再通过script标签引入打包后的bundle</span></div><div class="line">    <span class="keyword">new</span> HtmlWebpackPlugin(&#123;</div><div class="line">    	<span class="comment">// 生产的html的名字</span></div><div class="line">      filename: process.env.NODE_ENV === <span class="string">'testing'</span></div><div class="line">        ? <span class="string">'index.html'</span></div><div class="line">        : config.build.index,</div><div class="line">      <span class="attr">template</span>: <span class="string">'index.html'</span>,</div><div class="line">      <span class="comment">// 表示js资源将放在&lt;body&gt;的底部</span></div><div class="line">      inject: <span class="literal">true</span>,</div><div class="line">      <span class="comment">// 减少输出的配置选项</span></div><div class="line">      minify: &#123;</div><div class="line">      	  <span class="comment">// 移除html注释</span></div><div class="line">        removeComments: <span class="literal">true</span>,</div><div class="line">        <span class="comment">// 折叠会产生文档树节点的空格</span></div><div class="line">        collapseWhitespace: <span class="literal">true</span>,</div><div class="line">        <span class="comment">// 尽可能删除属性的引号</span></div><div class="line">        removeAttributeQuotes: <span class="literal">true</span></div><div class="line">        <span class="comment">// more options:</span></div><div class="line">        <span class="comment">// https://github.com/kangax/html-minifier#options-quick-reference</span></div><div class="line">      &#125;,</div><div class="line">      <span class="comment">// necessary to consistently work with multiple chunks via CommonsChunkPlugin</span></div><div class="line">      <span class="comment">// 控制如何将chunk块在html中进行排序</span></div><div class="line">      chunksSortMode: <span class="string">'dependency'</span></div><div class="line">    &#125;),</div><div class="line">    <span class="comment">// split vendor js into its own file</span></div><div class="line"></div><div class="line">    <span class="comment">// 将多个入口起点之间共享的公共模块，生成为一些 chunk，并且分离到单独的 bundle 中</span></div><div class="line">    <span class="keyword">new</span> webpack.optimize.CommonsChunkPlugin(&#123;</div><div class="line">      <span class="attr">name</span>: <span class="string">'vendor'</span>,</div><div class="line">      <span class="comment">// minChunks这个函数会被 CommonsChunkPlugin 插件回调，并且调用函数时会传入 module 和 count 参数。控制决定模块被打包到哪里的算法</span></div><div class="line">      minChunks: <span class="function"><span class="keyword">function</span> (<span class="params">module, count</span>) </span>&#123;</div><div class="line">        <span class="comment">// any required modules inside node_modules are extracted to vendor</span></div><div class="line">        <span class="keyword">return</span> (</div><div class="line">          <span class="built_in">module</span>.resource &amp;&amp;</div><div class="line">          <span class="regexp">/\.js$/</span>.test(<span class="built_in">module</span>.resource) &amp;&amp;</div><div class="line">          <span class="built_in">module</span>.resource.indexOf(</div><div class="line">            path.join(__dirname, <span class="string">'../node_modules'</span>)</div><div class="line">          ) === <span class="number">0</span></div><div class="line">        )</div><div class="line">      &#125;</div><div class="line">    &#125;),</div><div class="line">    <span class="comment">// extract webpack runtime and module manifest to its own file in order to</span></div><div class="line">    <span class="comment">// prevent vendor hash from being updated whenever app bundle is updated</span></div><div class="line">    <span class="comment">// 声明两次CommonsChunkPlugin是为了避免bundle更新时，vendor的hash改变</span></div><div class="line">    <span class="keyword">new</span> webpack.optimize.CommonsChunkPlugin(&#123;</div><div class="line">    	<span class="comment">// 长期缓存webpack静态资源的方案</span></div><div class="line">    	<span class="comment">// 生成含有chunk信息的manifest文件，包括chunk hash和chunk 目录</span></div><div class="line">      name: <span class="string">'manifest'</span>,</div><div class="line">      <span class="comment">// 定位chunk</span></div><div class="line">      chunks: [<span class="string">'vendor'</span>]</div><div class="line">    &#125;),</div><div class="line"></div><div class="line">    <span class="comment">// copy custom static assets</span></div><div class="line">    <span class="comment">// 复制静态资源地址</span></div><div class="line">    <span class="keyword">new</span> CopyWebpackPlugin([</div><div class="line">      &#123;</div><div class="line">        <span class="attr">from</span>: path.resolve(__dirname, <span class="string">'../static'</span>),</div><div class="line">        <span class="attr">to</span>: config.build.assetsSubDirectory,</div><div class="line">        <span class="attr">ignore</span>: [<span class="string">'.*'</span>]</div><div class="line">      &#125;</div><div class="line">    ])</div><div class="line">  ]</div><div class="line">&#125;)</div><div class="line"></div><div class="line"><span class="keyword">if</span> (config.build.productionGzip) &#123;</div><div class="line">  <span class="comment">// 在生产环境下，启动压缩代码插件</span></div><div class="line">  <span class="keyword">var</span> CompressionWebpackPlugin = <span class="built_in">require</span>(<span class="string">'compression-webpack-plugin'</span>)</div><div class="line"></div><div class="line">  webpackConfig.plugins.push(</div><div class="line">    <span class="comment">// 配置压缩代码插件</span></div><div class="line">    <span class="keyword">new</span> CompressionWebpackPlugin(&#123;</div><div class="line">      <span class="comment">// 目标资源名称</span></div><div class="line">      asset: <span class="string">'[path].gz[query]'</span>,</div><div class="line">      <span class="comment">// 压缩算法</span></div><div class="line">      algorithm: <span class="string">'gzip'</span>,</div><div class="line">      <span class="comment">//  所有匹配该正则的资源都会被处理</span></div><div class="line">      test: <span class="keyword">new</span> <span class="built_in">RegExp</span>(</div><div class="line">        <span class="string">'\\.('</span> +</div><div class="line">        config.build.productionGzipExtensions.join(<span class="string">'|'</span>) +</div><div class="line">        <span class="string">')$'</span></div><div class="line">      ),</div><div class="line">      <span class="attr">threshold</span>: <span class="number">10240</span>,</div><div class="line">      <span class="comment">//  只有压缩率小于这个值的资源才会被处理</span></div><div class="line">      minRatio: <span class="number">0.8</span></div><div class="line">    &#125;)</div><div class="line">  )</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="流程原理"><a href="#流程原理" class="headerlink" title="流程原理"></a>流程原理</h3><h4 id="简略版"><a href="#简略版" class="headerlink" title="简略版"></a>简略版</h4><p><img src="http://upload-images.jianshu.io/upload_images/1945738-f1379447d7a0417c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="简要图示"><br>webpack根据模块的依赖关系进行静态分析，然后将这些模块按照指定的规则生成对应的静态资源。</p>
+<h4 id="详细版"><a href="#详细版" class="headerlink" title="详细版"></a>详细版</h4><ol>
+<li>所有代码和文件经由<code>loader</code>转换器，处理成模块</li>
+<li>webpack分析入口文件（<code>entry.js</code>）,解析模块间依赖关系，构建依赖关系图（<code>dependency graph</code>）</li>
+<li>webpack凭借依赖关系进行代码分离（<code>code spliting</code>）和整理</li>
+<li>webpack进行模块打包，生成对应的静态资源</li>
+</ol>
+<h4 id="细节版"><a href="#细节版" class="headerlink" title="细节版"></a>细节版</h4><ol>
+<li>命令行输入webpack,系统调用<code>./node_modules/.bin/webpack</code>这个脚本（shell），这个脚本调用<code>./node_modules/webpack/bin/webpack.js</code>并追加输入的参数，如<code>-p</code>(混淆压缩代码)、<code>-w</code>(监控自动打包)</li>
+<li>webpack通过<code>optimist</code>（一个<code>node.js</code>库，用来解析选项）将用户配置的<code>webpack.config.js</code>和<code>shell</code>脚本传来的参数整合成<code>option对象</code>传入下一个流程中</li>
+<li>webpack初始化，构建<code>complilation</code>对象，该对象负责组织整个编译过程，包含了每个构建环节所对应的方法</li>
+<li>找到入口文件，解析入口文件，通过对应的工厂方法创建模块，保存到<code>compilation</code>对象上</li>
+<li>创建依赖关系图，对依赖链上的模块依次（异步）进行build操作，调用loader处理源文件</li>
+<li>调用<code>seal</code>方法封装，生成编译后的代码，每一个chunk对应一个入口文件，逐次对每个chunk整理、合并、拆分</li>
+<li>处理生成最后的文件</li>
+<li>有一个实现插件绑定与调用的库（<code>tapable</code>），贯穿整个webpack打包编译过程，不同的插件通过自身的<code>apply</code>方法调用<code>tapable</code>的<code>plugin</code>方法，将插件添加对<code>compiler</code>对象，从而在编译的不同时期对文件进行相应的处理。</li>
+</ol>
+<p>参考图示：<br><img src="https://img.alicdn.com/tps/TB1GVGFNXXXXXaTapXXXXXXXXXX-4436-4244.jpg" alt="webpack工作流程-来自TB前端团队"></p>
+<h4 id="从Complier的事件钩子看编译流程"><a href="#从Complier的事件钩子看编译流程" class="headerlink" title="从Complier的事件钩子看编译流程"></a>从<code>Complier</code>的事件钩子看编译流程</h4><blockquote>
+<p>webpack 的 <code>Compiler</code>模块是创建一个传入<code>webpack CLI</code>、 <code>webpack api</code> 或 webpack 配置文件等选项的编译实例的主引擎。</p>
+</blockquote>
+<p>这是 Compiler 暴露的所有事件钩子的参考指南</p>
+<table>
+<thead>
+<tr>
+<th>事件名称</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>entry-options</td>
+<td>-</td>
+</tr>
+<tr>
+<td>after-plugins</td>
+<td>设置插件的初始配置后</td>
+</tr>
+<tr>
+<td>after-resolvers</td>
+<td>设置解析器后</td>
+</tr>
+<tr>
+<td>environment</td>
+<td>-</td>
+</tr>
+<tr>
+<td>after-environment</td>
+<td>环境配置完成</td>
+</tr>
+<tr>
+<td>before-run</td>
+<td>compiler.run() 开始</td>
+</tr>
+<tr>
+<td>run</td>
+<td>读取记录之前</td>
+</tr>
+<tr>
+<td>watch-run</td>
+<td>监视后开始编译之前</td>
+</tr>
+<tr>
+<td>normal-module-factory</td>
+<td>创建 NormalModuleFactory 后</td>
+</tr>
+<tr>
+<td>context-module-factory</td>
+<td>创建 ContextModuleFactory 后</td>
+</tr>
+<tr>
+<td>before-compile</td>
+<td>编译参数创建完成</td>
+</tr>
+<tr>
+<td>compile</td>
+<td>创建新编译之前</td>
+</tr>
+<tr>
+<td>this-compilation</td>
+<td>发送 compilation 事件之前</td>
+</tr>
+<tr>
+<td>compilation</td>
+<td>编译创建完成</td>
+</tr>
+<tr>
+<td>make</td>
+<td>-</td>
+</tr>
+<tr>
+<td>after-compile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>should-emit</td>
+<td>此时可以返回 true/false</td>
+</tr>
+<tr>
+<td>need-additional-pass</td>
+<td>-</td>
+</tr>
+<tr>
+<td>emit</td>
+<td>在发送资源到输出目录之前</td>
+</tr>
+<tr>
+<td>after-emit</td>
+<td>在发送资源到输出目录之后</td>
+</tr>
+<tr>
+<td>done</td>
+<td>完成编译</td>
+</tr>
+<tr>
+<td>failed</td>
+<td>编译失败</td>
+</tr>
+<tr>
+<td>invalid</td>
+<td>一个监控的编译变无效后</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="其他功能"><a href="#其他功能" class="headerlink" title="其他功能"></a>其他功能</h3><h4 id="代码分离"><a href="#代码分离" class="headerlink" title="代码分离"></a>代码分离</h4><blockquote>
+<p>代码分离是 webpack 中最引人注目的特性之一。此特性能够把代码分离到不同的 bundle 中，然后可以按需加载或并行加载这些文件。代码分离可以用于获取更小的 bundle，以及控制资源加载优先级，如果使用合理，会极大影响加载时间。</p>
+</blockquote>
+<h4 id="常用方法"><a href="#常用方法" class="headerlink" title="常用方法"></a>常用方法</h4><h5 id="入口起点"><a href="#入口起点" class="headerlink" title="入口起点"></a>入口起点</h5><p>使用 entry 选项手动分离代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">entry: &#123;</div><div class="line">  index: &apos;./src/index.js&apos;,</div><div class="line">  another: &apos;./src/another-module.js&apos;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这样的方案需要开发者在开发过程中就对模块的组织有清晰的规划，整理出入口文件。</p>
+<h5 id="防止重复"><a href="#防止重复" class="headerlink" title="防止重复"></a>防止重复</h5><p>使用 CommonsChunkPlugin 去重和分离 chunk。</p>
+<blockquote>
+<p>CommonsChunkPlugin 插件，是一个可选的用于建立一个独立文件(又称作 chunk)的功能，这个文件包括多个入口 chunk 的公共模块。通过将公共模块拆出来，最终合成的文件能够在最开始的时候加载一次，便存起来到缓存中供后续使用。这个带来速度上的提升，因为浏览器会迅速将公共的代码从缓存中取出来，而不是每次访问一个新页面时，再去加载一个更大的文件。</p>
+</blockquote>
+<h5 id="动态导入"><a href="#动态导入" class="headerlink" title="动态导入"></a>动态导入</h5><p>通过模块的内联函数调用来分离代码</p>
+<p>如<code>require.ensure()</code>动态导入模块，output会生成额外的chunkFile</p>
+<h4 id="Webpack-Dev-Server介绍"><a href="#Webpack-Dev-Server介绍" class="headerlink" title="Webpack Dev Server介绍"></a>Webpack Dev Server介绍</h4><p><code>webpack dev server</code>是webpack提供的本地开发服务器，内建有<code>liveReload</code>功能。</p>
+<h5 id="概念了解"><a href="#概念了解" class="headerlink" title="概念了解"></a>概念了解</h5><table>
+<thead>
+<tr>
+<th></th>
+<th>代码同步对象</th>
+<th>webpack</th>
+<th>浏览器刷新</th>
+<th>是否需要服务器</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>watch mode</td>
+<td>webpack</td>
+<td>自动打包</td>
+<td>手动刷新</td>
+<td>否</td>
+</tr>
+<tr>
+<td>liveReload</td>
+<td>浏览器视图</td>
+<td>自动打包</td>
+<td>自动刷新全部</td>
+<td>是</td>
+</tr>
+<tr>
+<td>hotReload</td>
+<td>浏览器视图中对应部分</td>
+<td>自动打包</td>
+<td>自动刷新修改部分</td>
+<td>是</td>
+</tr>
+</tbody>
+</table>
+<p><code>webpack dev server</code>基于<code>Express</code>，使用<code>webpack-dev-middleware</code>来支持webpack的打包,它使用内存编译，这意味着bundle不会被保存在硬盘上</p>
+<h5 id="使用方式"><a href="#使用方式" class="headerlink" title="使用方式"></a>使用方式</h5><ul>
+<li>安装：<code>npm install --save-dev webpack-dev-server</code></li>
+<li>唤起：<code>webpack-dev-server --open</code></li>
+</ul>
+<p>或者在package.json中配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&quot;scripts&quot;: &#123;</div><div class="line">    &quot;start&quot;: &quot;webpack-dev-server&quot;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>使用<code>npm start</code>打开服务器，即可在<code>http://localhost:8080</code>中查看</p>
+<p>关于Wepack Dev Server的<a href="https://doc.webpack-china.org/configuration/dev-server/" target="_blank" rel="external">详细配置</a></p>
+<p><br><br><br></p>
+<h4 id="HMR（Hot-Module-Replacement）介绍"><a href="#HMR（Hot-Module-Replacement）介绍" class="headerlink" title="HMR（Hot-Module-Replacement）介绍"></a>HMR（Hot-Module-Replacement）介绍</h4><p>模块热替换HMR功能会在应用程序运行过程中替换、添加或删除模块，而无需重新加载整个页面。主要是通过以下几种方式，来显著加快开发速度：</p>
+<ul>
+<li>保留应用程序状态</li>
+<li>只更新变更内容</li>
+<li>调整样式更快</li>
+</ul>
+<h5 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h5><ol>
+<li><p>应用程序要求HMR检查更新（<code>check</code>方法）</p>
+</li>
+<li><p>HMR找到修改模块，下载更新，更新由两部分组成：</p>
+<ul>
+<li>一个或多个更新后的chunk补丁文件（<code>.js</code>）：每个chunk都含有对应于此chunk的全部更新模块的代码。</li>
+<li>描述性文件<code>manifest</code>（<code>.json</code>）：包括新的编译 hash 和所有的待更新 chunk 目录</li>
+</ul>
+</li>
+<li><p>应用程序代码要求HMR应用更新（<code>apply</code>方法）</p>
+</li>
+<li><p>HMR应用更新。启用<code>webpack-dev-server</code>服务时，server会响应客户端发起的<code>eventStream</code>请求，保持请求不断，服务器就可以把结果push到浏览器</p>
+</li>
+</ol>
+<h5 id="使用方式（使用webpack-dev-server服务）"><a href="#使用方式（使用webpack-dev-server服务）" class="headerlink" title="使用方式（使用webpack-dev-server服务）"></a>使用方式（使用<code>webpack-dev-server</code>服务）</h5><p>通过在<code>webpack.config.js</code>或<code>webpack.dev.conf.js</code>中进行配置插件使用<br><code>HotModuleReplacementPlugin</code>插件挂载在webpack下，所有不需要另外安装</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">module.exports = &#123;</div><div class="line">plugins: [</div><div class="line">    new webpack.HotModuleReplacementPlugin() // 启用 HMR</div><div class="line">  ],</div><div class="line">devServer: &#123;</div><div class="line">    hot: true, // 告诉 dev-server 我们在使用 HMR</div><div class="line">    contentBase: path.resolve(__dirname, &apos;dist&apos;),</div><div class="line">    publicPath: &apos;/&apos;</div><div class="line">  &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>此时HMR的接口暴露在<code>module.hot</code>下，通过在<code>module.hot</code>下使用HMR的方法，实现在更新周期中的操作，如</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">if (module.hot) &#123;</div><div class="line">  module.hot.accept(&apos;./library.js&apos;, function() &#123;</div><div class="line">    // 使用更新过的 library 模块执行某些操作...</div><div class="line">  &#125;)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>当我们不使用任何方法时，HMR默认会进行冒泡更新，一个模块被更新时，整组依赖模块（模块树）都会重新加载</p>
+<p>当我们有自己的服务器又想使用HMR功能时，可以采用<code>webpack-dev-middleware</code> + <code>webpack-hot-middleware</code>的解决方案</p>
+<p>指路：<a href="https://github.com/glenjamin/webpack-hot-middleware" target="_blank" rel="external">Webpack Hot Middleware</a></p>
+<p><br><br><br></p>
+<h4 id="常用插件介绍"><a href="#常用插件介绍" class="headerlink" title="常用插件介绍"></a>常用插件介绍</h4><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CommonsChunkPlugin</td>
+<td>将多个入口起点之间共享的公共模块，生成为一些 chunk，并且分离到单独的 bundle 中，例如，vendor.bundle.js 和 app.bundle.js</td>
+</tr>
+<tr>
+<td>DefinePlugin</td>
+<td>允许在编译时(compile time)配置的全局常量，用于允许「开发/发布」构建之间的不同行为</td>
+</tr>
+<tr>
+<td>HtmlWebpackPlugin</td>
+<td>用于简化 HTML 文件（index.html）的创建，提供访问 bundle 的服务</td>
+</tr>
+<tr>
+<td>IgnorePlugin</td>
+<td>从 bundle 中排除某些模块</td>
+</tr>
+<tr>
+<td>ExtractTextPlugin</td>
+<td>将所有的入口chunk中引用的 *.css，移动到独立分离的 CSS 文件。</td>
+</tr>
+<tr>
+<td>CompressionWebpackPlugin</td>
+<td>帮助压缩代码</td>
+</tr>
+<tr>
+<td>UglifyJsPlugin</td>
+<td>帮助混淆代码</td>
+</tr>
+</tbody>
+</table>
+<p>更多插件：<a href="https://doc.webpack-china.org/plugins/compression-webpack-plugin/" target="_blank" rel="external">https://doc.webpack-china.org/plugins/compression-webpack-plugin/</a><br><br><br><br></p>
+<h3 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h3><ul>
+<li><a href="https://doc.webpack-china.org/concepts/" target="_blank" rel="external">doc.webpack-china.org</a></li>
+<li><a href="http://taobaofed.org/blog/2016/09/09/webpack-flow/" target="_blank" rel="external">细说 webpack 之流程篇</a></li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/webpack/" rel="tag"># webpack</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/30/Vue-devtools无法启动的几个原因-解决方案/" rel="prev" title="Vue-devtools无法启动的几个原因&解决方案">
+                Vue-devtools无法启动的几个原因&解决方案 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="escawn" />
+          <p class="site-author-name" itemprop="name">escawn</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/escawn" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#摘要"><span class="nav-number">1.</span> <span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简介"><span class="nav-number">2.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#概念介绍"><span class="nav-number">3.</span> <span class="nav-text">概念介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Entry"><span class="nav-number">3.1.</span> <span class="nav-text">Entry</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#介绍"><span class="nav-number">3.1.1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#语法"><span class="nav-number">3.1.2.</span> <span class="nav-text">语法</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Chunks"><span class="nav-number">3.2.</span> <span class="nav-text">Chunks</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#介绍-1"><span class="nav-number">3.2.1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#chunk类别"><span class="nav-number">3.2.2.</span> <span class="nav-text">chunk类别</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#对应关系"><span class="nav-number">3.2.3.</span> <span class="nav-text">对应关系</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Output"><span class="nav-number">3.3.</span> <span class="nav-text">Output</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#介绍-2"><span class="nav-number">3.3.1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#语法-1"><span class="nav-number">3.3.2.</span> <span class="nav-text">语法</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Bundle"><span class="nav-number">3.4.</span> <span class="nav-text">Bundle</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Loader"><span class="nav-number">3.5.</span> <span class="nav-text">Loader</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#介绍-3"><span class="nav-number">3.5.1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#特性"><span class="nav-number">3.5.2.</span> <span class="nav-text">特性</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#语法-2"><span class="nav-number">3.5.3.</span> <span class="nav-text">语法</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Plugin"><span class="nav-number">3.6.</span> <span class="nav-text">Plugin</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#介绍-4"><span class="nav-number">3.6.1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#原理概览"><span class="nav-number">3.6.2.</span> <span class="nav-text">原理概览</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#用法"><span class="nav-number">3.6.3.</span> <span class="nav-text">用法</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Modules"><span class="nav-number">3.7.</span> <span class="nav-text">Modules</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#介绍-5"><span class="nav-number">3.7.1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#webpack中的模块类型"><span class="nav-number">3.7.2.</span> <span class="nav-text">webpack中的模块类型</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置应用"><span class="nav-number">4.</span> <span class="nav-text">配置应用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基础文件结构"><span class="nav-number">4.1.</span> <span class="nav-text">基础文件结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#webpack-config-js详解"><span class="nav-number">4.2.</span> <span class="nav-text">webpack.config.js详解</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#详细示例"><span class="nav-number">4.2.1.</span> <span class="nav-text">详细示例</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#webpack-base-conf-js"><span class="nav-number">4.2.1.1.</span> <span class="nav-text">webpack.base.conf.js</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#webpack-dev-conf-js"><span class="nav-number">4.2.1.2.</span> <span class="nav-text">webpack.dev.conf.js</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#webpack-prod-conf-js"><span class="nav-number">4.2.1.3.</span> <span class="nav-text">webpack.prod.conf.js</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#流程原理"><span class="nav-number">5.</span> <span class="nav-text">流程原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#简略版"><span class="nav-number">5.1.</span> <span class="nav-text">简略版</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#详细版"><span class="nav-number">5.2.</span> <span class="nav-text">详细版</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#细节版"><span class="nav-number">5.3.</span> <span class="nav-text">细节版</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#从Complier的事件钩子看编译流程"><span class="nav-number">5.4.</span> <span class="nav-text">从Complier的事件钩子看编译流程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他功能"><span class="nav-number">6.</span> <span class="nav-text">其他功能</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#代码分离"><span class="nav-number">6.1.</span> <span class="nav-text">代码分离</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常用方法"><span class="nav-number">6.2.</span> <span class="nav-text">常用方法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#入口起点"><span class="nav-number">6.2.1.</span> <span class="nav-text">入口起点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#防止重复"><span class="nav-number">6.2.2.</span> <span class="nav-text">防止重复</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#动态导入"><span class="nav-number">6.2.3.</span> <span class="nav-text">动态导入</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Webpack-Dev-Server介绍"><span class="nav-number">6.3.</span> <span class="nav-text">Webpack Dev Server介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#概念了解"><span class="nav-number">6.3.1.</span> <span class="nav-text">概念了解</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#使用方式"><span class="nav-number">6.3.2.</span> <span class="nav-text">使用方式</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HMR（Hot-Module-Replacement）介绍"><span class="nav-number">6.4.</span> <span class="nav-text">HMR（Hot-Module-Replacement）介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#流程"><span class="nav-number">6.4.1.</span> <span class="nav-text">流程</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#使用方式（使用webpack-dev-server服务）"><span class="nav-number">6.4.2.</span> <span class="nav-text">使用方式（使用webpack-dev-server服务）</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常用插件介绍"><span class="nav-number">6.5.</span> <span class="nav-text">常用插件介绍</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文献"><span class="nav-number">7.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">escawn</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'escawn';
+      var disqus_identifier = '2017/07/20/webpack学习笔记/';
+
+      var disqus_title = "webpack进阶学习";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("9HP4rlEkpBpsaDmhTYhfd8Xp-gzGzoHsz", "er5gMBJFD2fafEBnkPfgRzs9");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+
+  
+
+
+</body>
+</html>
